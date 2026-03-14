@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/diego/Documents/Chauchero/frontend/components -name \"*.tsx\" | xargs ls -lh)",
+      "Bash(find /Users/diego/Documents/Chauchero -name \".env*\" -o -name \"*.env\" 2>/dev/null | head -10)",
+      "Bash(cd /Users/diego/Documents/Chauchero/frontend && npm install 2>&1 | tail -5)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/dashboard && curl -s http://localhost:3001/dashboard 2>&1 | head -5)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && python -m pytest tests/test_banco_chile_parser.py -v 2>&1)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && python3 -m pytest tests/test_banco_chile_parser.py -v 2>&1)",
+      "Bash(venv/bin/pytest tests/test_banco_chile_parser.py -v 2>&1)",
+      "Bash(npm run:*)",
+      "Bash(venv/bin/python -c \"from app.core.config import settings; print\\('CLIENT_ID:', settings.GOOGLE_CLIENT_ID[:20]+'...'\\); print\\('SECRET:', settings.GOOGLE_CLIENT_SECRET[:10]+'...'\\); print\\('REDIRECT_URI:', settings.GOOGLE_REDIRECT_URI\\); print\\('FRONTEND_URL:', settings.FRONTEND_URL\\)\" 2>&1 | grep -v Warning | grep -v FutureWarning | grep -v warn)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && venv/bin/python -c \"from app.main import app; print\\('Backend OK'\\)\" 2>&1 | grep -v Warning | grep -v warn | grep -v FutureWarning)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && venv/bin/python -c \"\nfrom app.services.gmail_service import GmailService\nsvc = object.__new__\\(GmailService\\)\nprint\\(svc._build_search_query\\(None\\)\\)\n\" 2>&1 | grep -v Warning | grep -v warn | grep -v FutureWarning | grep -v Registered)",
+      "Bash(venv/bin/python -c \"\nfrom app.services.gmail_service import GmailService\nsvc = object.__new__\\(GmailService\\)\nprint\\('Query:', svc._build_search_query\\(None\\)\\)\nprint\\('Workers:', GmailService.FETCH_WORKERS\\)\n\" 2>&1 | grep -E \"Query:|Workers:|Error\")",
+      "Bash(venv/bin/python -c \"from app.main import app; print\\('OK'\\)\" 2>&1 | tail -3)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && venv/bin/python -c \"from app.main import app; print\\('Backend OK'\\)\" 2>&1 | tail -1)"
+    ]
+  }
+}

@@ -1,0 +1,233 @@
+"""
+TEMPLATE: Parser for [Bank Name]
+
+Steps to create a new bank parser:
+1. Copy this file to: [bank_name].py (e.g., santander.py)
+2. Fill in the bank details and patterns
+3. Test with sample emails
+4. Add import to __init__.py
+5. Restart backend
+
+See CONTRIBUTING.md for detailed guide.
+"""
+
+import re
+from typing import Optional
+from decimal import Decimal
+from datetime import datetime
+from .base import BankParser, ParsedTransaction, EmailData, parser_registry
+
+
+class NuevoBancoParser(BankParser):
+    """
+    Parser for [Bank Name] transaction notification emails.
+    
+    Email samples used for development:
+    - Sample 1: Purchase with credit card
+    - Sample 2: Bank transfer
+    - Sample 3: Deposit/credit
+    """
+    
+    bank_name = "[Bank Name]"
+    
+    email_domains = [
+        "[bank].cl",
+        "notificaciones@[bank].cl",
+        "alertas@[bank].cl"
+    ]
+    
+    subject_keywords = [
+        "transacción",
+        "compra",
+        "cargo",
+        "abono",
+        "transferencia"
+    ]
+    
+    def parse(self, email: EmailData) -> Optional[ParsedTransaction]:
+        """Main parsing method - extracts transaction from email"""
+        
+        content = email.body or ""
+        if email.html_body:
+            content += "\n" + email.html_body
+        
+        amount = self._extract_amount(content)
+        if not amount:
+            return None
+        
+        transaction_date = self._extract_date(content) or email.date
+        description = self._extract_description(content) or email.subject
+        transaction_type = self._determine_type(content, amount)
+        last_4_digits = self._extract_card_digits(content)
+        
+        confidence = self._calculate_confidence(
+            has_amount=bool(amount),
+            has_date=bool(transaction_date != email.date),
+            has_description=bool(description != email.subject)
+        )
+        
+        return ParsedTransaction(
+            amount=abs(amount),
+            transaction_date=transaction_date,
+            description=description,
+            transaction_type=transaction_type,
+            last_4_digits=last_4_digits,
+            confidence=confidence,
+            raw_data={
+                "email_id": email.message_id,
+                "subject": email.subject,
+                "sender": email.sender
+            }
+        )
+    
+    def _extract_amount(self, content: str) -> Optional[Decimal]:
+        """
+        Extract transaction amount from email.
+        
+        Examples of what to look for:
+        - "Monto: $45.990"
+        - "Por: $18.500"
+        - "Total: $ 32.990"
+        - "Valor: $125.000"
+        """
+        patterns = [
+            r'Monto[:\s]+\$\s*([\d.,]+)',
+            r'Por[:\s]+\$\s*([\d.,]+)',
+            r'Total[:\s]+\$\s*([\d.,]+)',
+            r'Valor[:\s]+\$\s*([\d.,]+)',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                try:
+                    return self.clean_amount(match.group(1))
+                except (ValueError, Decimal.InvalidOperation):
+                    continue
+        
+        return None
+    
+    def _extract_date(self, content: str) -> Optional[datetime]:
+        """
+        Extract transaction date from email.
+        
+        Common formats:
+        - "Fecha: 09/03/2026"
+        - "El: 09/03/2026 14:30"
+        - "Fecha: 09-03-2026"
+        """
+        patterns = [
+            (r'Fecha[:\s]+(\d{2}/\d{2}/\d{4})', "%d/%m/%Y"),
+            (r'El[:\s]+(\d{2}/\d{2}/\d{4})', "%d/%m/%Y"),
+            (r'Fecha[:\s]+(\d{2}-\d{2}-\d{4})', "%d-%m-%Y"),
+            (r'(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2})', "%d/%m/%Y %H:%M"),
+        ]
+        
+        for pattern, date_format in patterns:
+            match = re.search(pattern, content)
+            if match:
+                try:
+                    date_str = match.group(0).split(':', 1)[-1].strip()
+                    return self.parse_date(date_str, date_format)
+                except ValueError:
+                    continue
+        
+        return None
+    
+    def _extract_description(self, content: str) -> Optional[str]:
+        """
+        Extract merchant/description from email.
+        
+        Look for:
+        - "Comercio: UBER EATS"
+        - "En: SUPERMERCADO JUMBO"
+        - "Local: CINE HOYTS"
+        - "Establecimiento: FARMACIA"
+        """
+        patterns = [
+            r'Comercio[:\s]+(.+?)(?:\n|$)',
+            r'En[:\s]+(.+?)(?:\n|$)',
+            r'Local[:\s]+(.+?)(?:\n|$)',
+            r'Establecimiento[:\s]+(.+?)(?:\n|$)',
+            r'Descripci[oó]n[:\s]+(.+?)(?:\n|$)',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                desc = match.group(1).strip()
+                desc = re.sub(r'\s+', ' ', desc)
+                return desc[:200]
+        
+        return None
+    
+    def _extract_card_digits(self, content: str) -> Optional[str]:
+        """
+        Extract last 4 digits of card/account.
+        
+        Patterns:
+        - "****1234"
+        - "Tarjeta: ****5678"
+        - "terminada en: 9012"
+        """
+        patterns = [
+            r'\*+(\d{4})',
+            r'(?:Tarjeta|Cuenta)[:\s]+\*+(\d{4})',
+            r'terminada en[:\s]+(\d{4})',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, content, re.IGNORECASE)
+            if match:
+                return match.group(1)
+        
+        return None
+    
+    def _determine_type(self, content: str, amount: Decimal) -> str:
+        """
+        Determine transaction type.
+        
+        Types:
+        - debit: Purchase, charge, payment out
+        - credit: Deposit, incoming transfer
+        - transfer_debit: Outgoing transfer
+        - transfer_credit: Incoming transfer
+        """
+        content_lower = content.lower()
+        
+        if any(word in content_lower for word in ["compra", "cargo", "débito", "debito", "pago"]):
+            return "debit"
+        elif any(word in content_lower for word in ["abono", "depósito", "deposito", "crédito", "credito"]):
+            return "credit"
+        elif "transferencia" in content_lower:
+            if any(word in content_lower for word in ["enviada", "desde", "realizada"]):
+                return "transfer_debit"
+            elif any(word in content_lower for word in ["recibida", "hacia", "ingreso"]):
+                return "transfer_credit"
+            return "transfer_debit"
+        
+        return "debit" if amount < 0 else "credit"
+    
+    def _calculate_confidence(self, has_amount: bool, has_date: bool, has_description: bool) -> int:
+        """
+        Calculate confidence score (0-100).
+        
+        Scoring:
+        - Amount found: +60 points
+        - Date found: +20 points
+        - Description found: +20 points
+        """
+        score = 0
+        
+        if has_amount:
+            score += 60
+        if has_date:
+            score += 20
+        if has_description:
+            score += 20
+        
+        return min(score, 100)
+
+
+# IMPORTANT: Register the parser (uncomment when ready)
+# parser_registry.register(NuevoBancoParser)

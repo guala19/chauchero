@@ -1,0 +1,144 @@
+Chauchero/ - Chilean Bank Spending Tracker
+│
+├── 📄 Documentation (14 files)
+│   ├── START_HERE.md ⭐ - Begin here! Quick start guide
+│   ├── QUICKSTART.md - Detailed setup instructions
+│   ├── ARCHITECTURE.md - System design and patterns
+│   ├── CONTRIBUTING.md - How to add new banks
+│   ├── DEPLOYMENT.md - Production deployment guide
+│   ├── BANCO_EMAIL_FORMATS.md - Email format reference
+│   ├── FEATURES.md - Current features and roadmap
+│   ├── TESTING_GUIDE.md - Testing parsers and APIs
+│   ├── COMMANDS.md - Command reference
+│   ├── PROJECT_STATUS.md - What's implemented
+│   ├── PROJECT_SUMMARY.md - Executive overview
+│   ├── README.md - Project overview
+│   └── SETUP.md - Setup guide
+│
+├── 🐍 Backend (FastAPI + Python)
+│   ├── app/
+│   │   ├── core/
+│   │   │   ├── config.py - Environment configuration
+│   │   │   ├── database.py - Database connection
+│   │   │   └── security.py - JWT and encryption
+│   │   │
+│   │   ├── models/ (SQLAlchemy ORM)
+│   │   │   ├── user.py - User model
+│   │   │   ├── bank_account.py - Bank account model
+│   │   │   ├── transaction.py - Transaction model
+│   │   │   └── parser_rule.py - Parser rules (future DB-based)
+│   │   │
+│   │   ├── parsers/ ⭐ (Extensible parser system)
+│   │   │   ├── base.py - Abstract parser + registry
+│   │   │   ├── banco_chile.py - Banco de Chile parser
+│   │   │   ├── TEMPLATE_nuevo_banco.py.example - Template for new banks
+│   │   │   └── __init__.py - Parser registry initialization
+│   │   │
+│   │   ├── services/
+│   │   │   ├── gmail_service.py - Gmail API interaction
+│   │   │   ├── transaction_service.py - Sync and transaction logic
+│   │   │   └── auth_service.py - OAuth and authentication
+│   │   │
+│   │   ├── routers/ (API endpoints)
+│   │   │   ├── auth.py - /auth/* endpoints
+│   │   │   ├── transactions.py - /transactions/* endpoints
+│   │   │   └── banks.py - /banks/* endpoints
+│   │   │
+│   │   ├── schemas/ (Pydantic validation)
+│   │   │   ├── user.py - User schemas
+│   │   │   └── transaction.py - Transaction schemas
+│   │   │
+│   │   └── main.py - FastAPI application entry
+│   │
+│   ├── alembic/
+│   │   ├── versions/
+│   │   │   └── 001_initial_schema.py - Initial DB schema
+│   │   ├── env.py - Alembic environment
+│   │   └── script.py.mako - Migration template
+│   │
+│   ├── tests/
+│   │   └── test_banco_chile_parser.py - Unit tests
+│   │
+│   ├── scripts/
+│   │   ├── test_parser.py - Manual parser testing
+│   │   └── sample_emails.py - Sample email data
+│   │
+│   ├── requirements.txt - Python dependencies
+│   ├── .env.example - Environment template
+│   ├── .env - Your configuration (gitignored)
+│   ├── alembic.ini - Alembic config
+│   ├── pytest.ini - Pytest config
+│   ├── Dockerfile - Container definition
+│   └── README.md - Backend documentation
+│
+├── ⚛️  Frontend (Next.js + TypeScript)
+│   ├── app/
+│   │   ├── page.tsx - Landing page with Google login
+│   │   ├── layout.tsx - Root layout
+│   │   ├── globals.css - Global styles
+│   │   ├── auth/
+│   │   │   └── callback/
+│   │   │       └── page.tsx - OAuth callback handler
+│   │   └── dashboard/
+│   │       └── page.tsx - Main dashboard with transactions
+│   │
+│   ├── components/
+│   │   ├── TransactionCard.tsx - Transaction display component
+│   │   ├── LoadingSpinner.tsx - Loading indicator
+│   │   └── EmptyState.tsx - Empty state component
+│   │
+│   ├── lib/
+│   │   ├── api.ts - API client functions
+│   │   └── utils.ts - Utility functions (formatting, etc.)
+│   │
+│   ├── package.json - Node dependencies
+│   ├── tsconfig.json - TypeScript config
+│   ├── tailwind.config.ts - Tailwind CSS config
+│   ├── next.config.js - Next.js config
+│   ├── postcss.config.js - PostCSS config
+│   ├── .eslintrc.json - ESLint config
+│   ├── .env.local.example - Environment template
+│   ├── .env.local - Your configuration (gitignored)
+│   ├── Dockerfile - Container definition
+│   └── README.md - Frontend documentation
+│
+├── 🔧 Configuration
+│   ├── docker-compose.yml - PostgreSQL service
+│   ├── .gitignore - Git ignore rules
+│   ├── .vscode/
+│   │   ├── settings.json - Editor settings
+│   │   └── launch.json - Debug configurations
+│   └── setup.sh - Automated setup script
+│
+└── 🚀 Development Scripts
+    ├── setup.sh - Initial setup automation
+    └── dev.sh - Start dev servers
+
+Total Project Statistics:
+─────────────────────────
+• Python files: 33 (custom code)
+• TypeScript/React files: 10
+• Documentation files: 14 markdown guides
+• Configuration files: 15+
+• Test files: Included
+• Scripts: 4 utility scripts
+
+Key Features:
+─────────────────────────
+✅ Complete OAuth flow
+✅ Gmail API integration
+✅ Extensible parser system
+✅ Banco de Chile parser (working)
+✅ Transaction management
+✅ Modern UI with Tailwind
+✅ Database migrations
+✅ Unit tests
+✅ Docker setup
+✅ Comprehensive documentation
+
+Ready to Use:
+─────────────────────────
+1. Configure Google OAuth (5 min)
+2. Start services (1 command)
+3. Login and sync (1 click)
+4. Add more banks (1 hour each)

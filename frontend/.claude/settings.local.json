@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /Users/diego/Documents/Chauchero/frontend/components/dashboard/*.tsx)",
+      "Bash(grep -r \"correo\\\\|email\\\\|mail\" /Users/diego/Documents/Chauchero/frontend --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\" ! -path \"*/.next/*\" | grep -v \"^Binary\" | head -40)",
+      "Bash(grep -r \"correo\\\\|email\\\\|mail\" /Users/diego/Documents/Chauchero/frontend --include=\"*.ts\" --include=\"*.tsx\" 2>/dev/null | grep -v node_modules | grep -v .next | head -50)",
+      "Bash(find /Users/diego/Documents/Chauchero/frontend -type f \\\\\\( -name \"jest.config.*\" -o -name \"vitest.config.*\" -o -name \"*.test.*\" -o -name \"*.spec.*\" -o -name \"playwright.config.*\" -o -name \".mocharc.*\" \\\\\\) 2>/dev/null | grep -v node_modules)",
+      "Bash(tree -L 2 -I 'node_modules|.next' /Users/diego/Documents/Chauchero/frontend 2>/dev/null || find /Users/diego/Documents/Chauchero/frontend -maxdepth 2 -type d ! -path \"*/node_modules*\" ! -path \"*/.next*\" | sort)"
+    ]
+  }
+}
