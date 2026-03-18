@@ -55,13 +55,18 @@ def root():
 
 
 # ── Health check ──────────────────────────────────────────────────────────────
-@app.get("/health")
+@app.get(
+    "/health",
+    summary="Health check",
+    description=(
+        "Verifica conectividad con la base de datos ejecutando `SELECT 1`. "
+        "Usado por Railway, load balancers y monitores de uptime."
+    ),
+    responses={
+        503: {"description": "Base de datos no disponible"},
+    },
+)
 def health_check():
-    """
-    Real health check — verifies DB connectivity.
-    Returns 200 if healthy, 503 if the database is unreachable.
-    Used by load balancers, uptime monitors, and deployment pipelines.
-    """
     db = SessionLocal()
     try:
         db.execute(text("SELECT 1"))
