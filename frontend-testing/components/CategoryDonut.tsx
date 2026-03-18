@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CATEGORY_DATA } from "@/lib/mock-data";
 import { formatCLP, formatCLPCompact } from "@/lib/format";
+import { Card } from "@/components/ui/card";
 
 const TOTAL = CATEGORY_DATA.reduce((sum, c) => sum + c.amount, 0);
 const SIZE = 180;
@@ -24,10 +25,10 @@ export default function CategoryDonut() {
   });
 
   return (
-    <div className="animate-fade-in stagger-3 rounded-[14px] border border-border-subtle bg-bg-surface p-6">
+    <Card className="animate-fade-in stagger-3 p-6">
       <div className="mb-6">
-        <h3 className="text-[18px] font-semibold text-text-primary">Gastos por categoría</h3>
-        <p className="mt-0.5 text-[13px] text-text-secondary">Distribución de marzo</p>
+        <h3 className="text-[18px] font-semibold text-foreground">Gastos por categoría</h3>
+        <p className="mt-0.5 text-[13px] text-muted-foreground">Distribución de marzo</p>
       </div>
 
       <div className="flex flex-col items-center">
@@ -44,7 +45,7 @@ export default function CategoryDonut() {
               cy={SIZE / 2}
               r={RADIUS}
               fill="none"
-              stroke="var(--border-subtle)"
+              stroke="var(--border)"
               strokeWidth={STROKE}
             />
             {/* Segments */}
@@ -71,10 +72,10 @@ export default function CategoryDonut() {
           </svg>
           {/* Center label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
               {hoveredIndex !== null ? CATEGORY_DATA[hoveredIndex].name : "Total"}
             </span>
-            <span className="num text-[18px] font-bold text-text-primary mt-0.5">
+            <span className="num text-[18px] font-bold text-foreground mt-0.5">
               {hoveredIndex !== null
                 ? formatCLPCompact(CATEGORY_DATA[hoveredIndex].amount)
                 : formatCLPCompact(TOTAL)}
@@ -95,18 +96,18 @@ export default function CategoryDonut() {
                 onMouseLeave={() => setHoveredIndex(null)}
               >
                 <div className="flex items-center gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                  <span className="text-[13px] text-text-secondary">{cat.name}</span>
+                  <div className="size-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                  <span className="text-[13px] text-muted-foreground">{cat.name}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="num text-[13px] font-medium text-text-primary">{formatCLP(cat.amount)}</span>
-                  <span className="num text-[11px] text-text-muted w-10 text-right">{percent}%</span>
+                  <span className="num text-[13px] font-medium text-foreground">{formatCLP(cat.amount)}</span>
+                  <span className="num text-[11px] text-muted-foreground w-10 text-right">{percent}%</span>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

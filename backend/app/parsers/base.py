@@ -75,7 +75,8 @@ class BankParser(ABC):
         """Clean and parse amount string to Decimal"""
         cleaned = re.sub(r'[^\d,.-]', '', amount_str)
         cleaned = cleaned.replace('.', '').replace(',', '.')
-        
+        if not cleaned or cleaned in ('.', '-', '-.'):
+            raise ValueError(f"Cannot parse amount from: {amount_str!r}")
         return Decimal(cleaned)
     
     def parse_date(self, date_str: str, format_str: str = "%d/%m/%Y") -> datetime:
@@ -93,7 +94,7 @@ class ParserRegistry:
         """Register a parser class"""
         parser_instance = parser_class()
         self._parsers.append(parser_instance)
-        print(f"Registered parser: {parser_instance.bank_name}")
+        pass  # registration is implicit
     
     def get_parser_for_email(self, email: EmailData) -> Optional[BankParser]:
         """Find the appropriate parser for an email"""

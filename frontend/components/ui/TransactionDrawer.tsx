@@ -6,8 +6,12 @@ import {
   Tag, ShieldCheck, Building2, StickyNote,
   TrendingUp, TrendingDown, ArrowLeftRight,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { formatCLP, formatCardNumber } from "@/lib/format";
 import { getConfidenceLevel } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,31 +40,28 @@ const TYPE_CONFIG = {
   income: {
     label: "Ingreso",
     Icon: TrendingUp,
-    color: "#16C784",
-    colorDim: "rgba(22,199,132,0.12)",
-    colorMid: "rgba(22,199,132,0.06)",
-    gradient: "linear-gradient(135deg, rgba(22,199,132,0.18) 0%, rgba(22,199,132,0.04) 100%)",
-    border: "rgba(22,199,132,0.25)",
+    color: "var(--ch-green)",
+    colorDim: "var(--ch-green-dim)",
+    gradient: "linear-gradient(135deg, var(--ch-green-dim) 0%, transparent 100%)",
+    border: "var(--ch-green)",
     sign: "+",
   },
   expense: {
     label: "Gasto",
     Icon: TrendingDown,
-    color: "#EF4444",
-    colorDim: "rgba(239,68,68,0.12)",
-    colorMid: "rgba(239,68,68,0.06)",
-    gradient: "linear-gradient(135deg, rgba(239,68,68,0.18) 0%, rgba(239,68,68,0.04) 100%)",
-    border: "rgba(239,68,68,0.25)",
+    color: "var(--ch-red)",
+    colorDim: "var(--ch-red-dim)",
+    gradient: "linear-gradient(135deg, var(--ch-red-dim) 0%, transparent 100%)",
+    border: "var(--ch-red)",
     sign: "−",
   },
   transfer: {
     label: "Transferencia",
     Icon: ArrowLeftRight,
-    color: "#5B7FFF",
-    colorDim: "rgba(91,127,255,0.12)",
-    colorMid: "rgba(91,127,255,0.06)",
-    gradient: "linear-gradient(135deg, rgba(91,127,255,0.18) 0%, rgba(91,127,255,0.04) 100%)",
-    border: "rgba(91,127,255,0.25)",
+    color: "var(--ch-blue)",
+    colorDim: "var(--ch-blue-dim)",
+    gradient: "linear-gradient(135deg, var(--ch-blue-dim) 0%, transparent 100%)",
+    border: "var(--ch-blue)",
     sign: "↔",
   },
 } as const;
@@ -94,27 +95,14 @@ function NotesSection({
 
   return (
     <div>
-      {/* Label */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <StickyNote size={13} style={{ color: "var(--text-muted)" }} />
-        <span style={{
-          fontSize: 10,
-          textTransform: "uppercase" as const,
-          letterSpacing: "0.12em",
-          fontWeight: 600,
-          color: "var(--text-muted)",
-        }}>
+      <div className="flex items-center gap-2 mb-2.5">
+        <StickyNote className="size-3.5 text-muted-foreground" />
+        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
           Nota personal
         </span>
       </div>
 
-      {/* Textarea */}
-      <div style={{
-        borderRadius: 12,
-        border: "1px solid var(--border)",
-        backgroundColor: "var(--bg-base)",
-        overflow: "hidden",
-      }}>
+      <Card className="overflow-hidden">
         <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -126,66 +114,24 @@ function NotesSection({
           }}
           placeholder="Escribe un comentario para esta transacción…"
           rows={4}
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            fontSize: 13,
-            lineHeight: 1.6,
-            color: "var(--text-primary)",
-            backgroundColor: "transparent",
-            border: "none",
-            outline: "none",
-            resize: "none",
-            fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
-          }}
+          className="w-full p-3 text-[13px] leading-relaxed text-foreground bg-transparent border-none outline-none resize-none placeholder:text-muted-foreground"
         />
-        {/* Footer bar inside textarea box */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 12px",
-          borderTop: "1px solid var(--border)",
-          backgroundColor: "var(--bg-elevated)",
-        }}>
-          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-            ⌘↵ para guardar
-          </span>
-          <button
+        <div className="flex items-center justify-between px-3 py-2 border-t border-border bg-muted/50">
+          <span className="text-[10px] text-muted-foreground">⌘↵ para guardar</span>
+          <Button
+            size="sm"
+            variant={saved ? "outline" : isDirty ? "default" : "ghost"}
             onClick={handleSave}
             disabled={!isDirty && !saved}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              height: 28,
-              padding: "0 12px",
-              borderRadius: 8,
-              border: "none",
-              cursor: isDirty ? "pointer" : "not-allowed",
-              fontSize: 12,
-              fontWeight: 500,
-              transition: "all 200ms ease",
-              backgroundColor: saved
-                ? "rgba(22,199,132,0.15)"
-                : isDirty
-                ? "#5B7FFF"
-                : "transparent",
-              color: saved
-                ? "#16C784"
-                : isDirty
-                ? "white"
-                : "var(--text-muted)",
-              opacity: !isDirty && !saved ? 0.5 : 1,
-            }}
+            className={cn(
+              "h-7 text-xs gap-1.5",
+              saved && "border-ch-green/30 bg-ch-green-dim text-ch-green hover:bg-ch-green-dim"
+            )}
           >
-            {saved
-              ? <><Check size={12} /> Guardado</>
-              : <><Save size={12} /> Guardar</>
-            }
-          </button>
+            {saved ? <><Check className="size-3" /> Guardado</> : <><Save className="size-3" /> Guardar</>}
+          </Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -204,40 +150,16 @@ function DetailChip({
   mono?: boolean;
 }) {
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
-      padding: "10px 14px",
-      borderRadius: 10,
-      backgroundColor: "var(--bg-elevated)",
-      border: "1px solid var(--border)",
-    }}>
-      <div style={{
-        width: 28,
-        height: 28,
-        borderRadius: 7,
-        backgroundColor: "var(--bg-overlay)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}>
-        <Icon size={13} style={{ color: "var(--text-secondary)" }} />
+    <div className="flex items-center gap-2.5 p-3 rounded-lg bg-muted/50 border border-border">
+      <div className="size-7 rounded-md bg-muted flex items-center justify-center shrink-0">
+        <Icon className="size-3.5 text-muted-foreground" />
       </div>
-      <div style={{ minWidth: 0 }}>
-        <p style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 2, letterSpacing: "0.06em" }}>
-          {label}
-        </p>
-        <p style={{
-          fontSize: 13,
-          fontWeight: 500,
-          color: "var(--text-primary)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap" as const,
-          fontFamily: mono ? "var(--font-geist-mono), monospace" : "inherit",
-        }}>
+      <div className="min-w-0">
+        <p className="text-[10px] text-muted-foreground tracking-wide mb-0.5">{label}</p>
+        <p className={cn(
+          "text-[13px] font-medium text-foreground truncate",
+          mono && "font-mono"
+        )}>
           {value}
         </p>
       </div>
@@ -256,6 +178,8 @@ export default function TransactionDrawer({
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (transaction) {
@@ -272,10 +196,10 @@ export default function TransactionDrawer({
 
   useEffect(() => {
     if (!mounted) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onCloseRef.current(); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [mounted, onClose]);
+  }, [mounted]);
 
   useEffect(() => {
     document.body.style.overflow = mounted ? "hidden" : "";
@@ -287,191 +211,90 @@ export default function TransactionDrawer({
   const cfg = TYPE_CONFIG[transaction.type];
   const { Icon } = cfg;
   const isPositive = transaction.amount > 0;
-  const confidence = transaction.confidence ?? 95;
+  const confidence = transaction.confidence ?? 0;
   const confLevel = getConfidenceLevel(confidence);
-  const confColor = confidence >= 80 ? "#16C784" : confidence >= 50 ? "#F0A500" : "#EF4444";
+  const confColor = confidence >= 80 ? "var(--ch-green)" : confidence >= 50 ? "var(--ch-amber)" : "var(--ch-red)";
 
   return (
     <>
-      {/* ── Backdrop ── */}
+      {/* Backdrop */}
       <div
         onClick={onClose}
         aria-hidden="true"
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 50,
-          background: "rgba(0,0,0,0.6)",
-          backdropFilter: "blur(4px)",
-          WebkitBackdropFilter: "blur(4px)",
-          transition: "opacity 350ms ease",
-          opacity: open ? 1 : 0,
-        }}
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-350"
+        style={{ opacity: open ? 1 : 0 }}
       />
 
-      {/* ── Panel ── */}
+      {/* Panel */}
       <div
         role="dialog"
         aria-modal="true"
+        className="fixed top-0 right-0 bottom-0 z-[51] w-[min(460px,100vw)] flex flex-col bg-card border-l border-border shadow-2xl"
         style={{
-          position: "fixed",
-          top: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 51,
-          width: "min(460px, 100vw)",
-          display: "flex",
-          flexDirection: "column",
-          // Lighter surface — clearly distinct from the dark base
-          backgroundColor: "#1A1C27",
-          borderLeft: `1px solid ${cfg.border}`,
-          boxShadow: `-24px 0 64px rgba(0,0,0,0.5), -1px 0 0 rgba(255,255,255,0.04)`,
           transition: "transform 350ms cubic-bezier(0.32,0,0.15,1)",
           transform: open ? "translateX(0)" : "translateX(100%)",
-          overflow: "hidden",
         }}
       >
-
-        {/* ── TOP: gradient hero ── */}
-        <div style={{
-          flexShrink: 0,
-          background: cfg.gradient,
-          borderBottom: `1px solid ${cfg.border}`,
-          padding: "28px 24px 24px",
-          position: "relative",
-          overflow: "hidden",
-        }}>
-
-          {/* Decorative blurred orb */}
-          <div style={{
-            position: "absolute",
-            top: -40,
-            right: -40,
-            width: 160,
-            height: 160,
-            borderRadius: "50%",
-            backgroundColor: cfg.color,
-            opacity: 0.08,
-            filter: "blur(40px)",
-            pointerEvents: "none",
-          }} />
+        {/* TOP: gradient hero */}
+        <div
+          className="shrink-0 border-b border-border p-6 pt-7 relative overflow-hidden"
+          style={{ background: cfg.gradient }}
+        >
+          {/* Decorative orb */}
+          <div
+            className="absolute -top-10 -right-10 size-40 rounded-full opacity-10 blur-[40px] pointer-events-none"
+            style={{ backgroundColor: cfg.color }}
+          />
 
           {/* Close button */}
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={onClose}
-            style={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.1)",
-              backgroundColor: "rgba(255,255,255,0.06)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              color: "rgba(255,255,255,0.5)",
-              transition: "all 150ms ease",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)";
-              e.currentTarget.style.color = "rgba(255,255,255,0.9)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)";
-              e.currentTarget.style.color = "rgba(255,255,255,0.5)";
-            }}
+            className="absolute top-4 right-4 size-8 bg-background/50"
           >
-            <X size={15} />
-          </button>
+            <X className="size-4" />
+          </Button>
 
           {/* Type pill */}
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "4px 10px",
-            borderRadius: 20,
-            backgroundColor: cfg.colorDim,
-            border: `1px solid ${cfg.border}`,
-            marginBottom: 16,
-          }}>
-            <Icon size={12} style={{ color: cfg.color }} />
-            <span style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: cfg.color,
-              letterSpacing: "0.04em",
-            }}>
-              {cfg.label}
-            </span>
-          </div>
+          <Badge
+            variant="secondary"
+            className="mb-4 gap-1.5"
+            style={{ backgroundColor: cfg.colorDim, color: cfg.color }}
+          >
+            <Icon className="size-3" />
+            {cfg.label}
+          </Badge>
 
           {/* Description */}
-          <p style={{
-            fontSize: 15,
-            fontWeight: 600,
-            color: "rgba(255,255,255,0.9)",
-            marginBottom: 4,
-            lineHeight: 1.3,
-          }}>
+          <p className="text-[15px] font-semibold text-foreground mb-1 leading-snug pr-10">
             {transaction.description}
           </p>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 20 }}>
+          <p className="text-[12px] text-muted-foreground mb-5">
             {transaction.date}
             {transaction.bank && ` · ${transaction.bank}`}
           </p>
 
-          {/* Amount — big */}
+          {/* Amount */}
           <div>
-            <p style={{
-              fontSize: 10,
-              color: "rgba(255,255,255,0.35)",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase" as const,
-              marginBottom: 4,
-            }}>
-              Monto
-            </p>
-            <p style={{
-              fontSize: 42,
-              fontWeight: 700,
-              lineHeight: 1,
-              color: cfg.color,
-              fontFamily: "var(--font-geist-mono), monospace",
-              fontVariantNumeric: "tabular-nums",
-              letterSpacing: "-0.02em",
-            }}>
+            <p className="text-[10px] text-muted-foreground tracking-wider uppercase mb-1">Monto</p>
+            <p
+              className="text-[42px] font-bold leading-none font-mono tabular-nums tracking-tight"
+              style={{ color: cfg.color }}
+            >
               {isPositive ? "+" : "−"}{formatCLP(Math.abs(transaction.amount))}
             </p>
           </div>
         </div>
 
-        {/* ── Scrollable body ── */}
-        <div style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "24px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 24,
-        }}>
-
-          {/* ── Details grid ── */}
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Details grid */}
           <div>
-            <p style={{
-              fontSize: 10,
-              textTransform: "uppercase" as const,
-              letterSpacing: "0.12em",
-              fontWeight: 600,
-              color: "var(--text-muted)",
-              marginBottom: 10,
-            }}>
+            <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-2.5">
               Detalles
             </p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div className="grid grid-cols-2 gap-2">
               <DetailChip icon={Calendar} label="Fecha" value={transaction.date} />
               <DetailChip icon={Tag}      label="Tipo"  value={cfg.label} />
               {transaction.last4 && (
@@ -486,7 +309,7 @@ export default function TransactionDrawer({
                 <DetailChip icon={Building2} label="Banco" value={transaction.bank} />
               )}
               {transaction.authCode && (
-                <div style={{ gridColumn: "1 / -1" }}>
+                <div className="col-span-2">
                   <DetailChip
                     icon={ShieldCheck}
                     label="Cód. autorización"
@@ -498,83 +321,48 @@ export default function TransactionDrawer({
             </div>
           </div>
 
-          {/* ── Confidence ── */}
-          <div style={{
-            padding: "16px",
-            borderRadius: 12,
-            backgroundColor: "var(--bg-elevated)",
-            border: "1px solid var(--border)",
-          }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 12,
-            }}>
+          {/* Confidence */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <p style={{
-                  fontSize: 10,
-                  textTransform: "uppercase" as const,
-                  letterSpacing: "0.12em",
-                  fontWeight: 600,
-                  color: "var(--text-muted)",
-                  marginBottom: 2,
-                }}>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">
                   Confianza del parser
                 </p>
-                <p style={{ fontSize: 12, color: confColor }}>
+                <p className="text-[12px]" style={{ color: confColor }}>
                   {confLevel.label}
                 </p>
               </div>
-              <span style={{
-                fontSize: 28,
-                fontWeight: 700,
-                fontFamily: "var(--font-geist-mono), monospace",
-                color: confColor,
-                lineHeight: 1,
-              }}>
+              <span
+                className="text-[28px] font-bold font-mono leading-none"
+                style={{ color: confColor }}
+              >
                 {confidence}%
               </span>
             </div>
 
             {/* Track */}
-            <div style={{
-              position: "relative",
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: "var(--bg-overlay)",
-              overflow: "hidden",
-            }}>
-              <div style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: 3,
-                backgroundColor: confColor,
-                transformOrigin: "left center",
-                transition: "transform 900ms cubic-bezier(0.34,1.56,0.64,1) 200ms",
-                transform: open ? `scaleX(${confidence / 100})` : "scaleX(0)",
-              }} />
+            <div className="relative h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  backgroundColor: confColor,
+                  transformOrigin: "left center",
+                  transition: "transform 900ms cubic-bezier(0.34,1.56,0.64,1) 200ms",
+                  transform: open ? `scaleX(${confidence / 100})` : "scaleX(0)",
+                }}
+              />
             </div>
 
-            {/* Tick marks */}
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: 6,
-            }}>
+            <div className="flex justify-between mt-1.5">
               {["0", "25", "50", "75", "100"].map((v) => (
-                <span key={v} style={{
-                  fontSize: 9,
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-geist-mono), monospace",
-                }}>
+                <span key={v} className="text-[9px] text-muted-foreground font-mono">
                   {v}
                 </span>
               ))}
             </div>
-          </div>
+          </Card>
 
-          {/* ── Notes ── */}
+          {/* Notes */}
           <NotesSection
             txId={transaction.id}
             initialNote={note}

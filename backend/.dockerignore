@@ -1,0 +1,22 @@
+__pycache__
+*.pyc
+*.pyo
+# Env files — never in the container (injected by hosting platform)
+.env
+.env.*
+# Version control
+.git
+.gitignore
+# Virtual environments
+.venv
+venv
+# Python build artifacts
+*.egg-info
+# Test and dev tooling
+.pytest_cache
+.mypy_cache
+tests/
+# Docs and local config
+*.md
+docker-compose*.yml
+scripts/

@@ -1,34 +1,44 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from .config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Grace period: expired tokens can still be refreshed within this window
+JWT_REFRESH_GRACE_HOURS = 24
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create JWT access token"""
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
-def verify_token(token: str) -> Optional[dict]:
-    """Verify JWT token and return payload"""
+def verify_token(token: str, allow_expired: bool = False) -> Optional[dict]:
+    """
+    Verify JWT and return payload.
+
+    - allow_expired=False (default): rejects expired tokens → used for normal auth
+    - allow_expired=True: accepts expired tokens within the grace period → used for refresh
+    """
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        options = {"verify_exp": not allow_expired}
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+            options=options,
+        )
+        if allow_expired:
+            exp = payload.get("exp")
+            if exp is None:
+                return None
+            expired_at = datetime.fromtimestamp(exp, tz=timezone.utc)
+            grace_limit = expired_at + timedelta(hours=JWT_REFRESH_GRACE_HOURS)
+            if datetime.now(timezone.utc) > grace_limit:
+                return None  # Too old, even grace period has passed
         return payload
     except JWTError:
         return None
-
-
-def encrypt_token(token: str) -> str:
-    """Encrypt sensitive tokens before storing in DB"""
-    return pwd_context.hash(token)

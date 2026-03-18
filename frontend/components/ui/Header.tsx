@@ -15,6 +15,15 @@ import {
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/lib/format";
 import { useTheme } from "@/components/providers/ThemeProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -52,9 +61,9 @@ function getPageTitle(pathname: string): string {
 
 function buildGreeting(name: string): string {
   const h = new Date().getHours();
-  if (h < 12) return `Buenos días, ${name} ☀️`;
-  if (h < 18) return `Buenas tardes, ${name} 🌤️`;
-  return `Buenas noches, ${name} 🌙`;
+  if (h < 12) return `Buenos días, ${name}`;
+  if (h < 18) return `Buenas tardes, ${name}`;
+  return `Buenas noches, ${name}`;
 }
 
 function buildDateStr(): string {
@@ -77,32 +86,18 @@ function SyncButton({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Button
       onClick={onClick}
       disabled={state === "syncing"}
+      size="sm"
+      variant={state === "idle" ? "default" : "outline"}
       className={cn(
-        "group relative flex items-center gap-2 h-8 px-3 rounded-[var(--radius)]",
-        "text-xs font-medium border transition-all duration-200 select-none",
-        "overflow-hidden",
-        state === "idle" && [
-          "bg-[var(--blue)] text-white border-[var(--blue)]",
-          "hover:brightness-110 active:brightness-90",
-        ],
-        state === "syncing" && [
-          "bg-[var(--bg-surface)] text-[var(--text-secondary)]",
-          "border-[var(--border)] cursor-wait",
-        ],
-        state === "success" && [
-          "bg-[var(--green-dim)] text-[var(--green)]",
-          "border-[var(--green)]/30",
-        ],
-        state === "error" && [
-          "bg-[var(--red-dim)] text-[var(--red)]",
-          "border-[var(--red)]/30",
-        ]
+        "relative gap-2 h-8 px-3 text-xs font-medium overflow-hidden",
+        state === "syncing" && "cursor-wait",
+        state === "success" && "border-ch-green/30 bg-ch-green-dim text-ch-green hover:bg-ch-green-dim hover:text-ch-green",
+        state === "error" && "border-destructive/30 bg-ch-red-dim text-destructive hover:bg-ch-red-dim hover:text-destructive"
       )}
     >
-      {/* Shimmer while syncing */}
       {state === "syncing" && (
         <span className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
       )}
@@ -122,7 +117,7 @@ function SyncButton({
         )}
         {state === "error" && "Error al sync"}
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -132,7 +127,6 @@ function SearchBar({ onSearch }: { onSearch?: (q: string) => void }) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Keyboard shortcut: ⌘K / Ctrl+K
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -151,27 +145,19 @@ function SearchBar({ onSearch }: { onSearch?: (q: string) => void }) {
 
   return (
     <div className="relative flex-1 max-w-xs">
-      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-[var(--text-muted)] pointer-events-none" />
-
-      <input
+      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
+      <Input
         ref={inputRef}
         type="text"
-        placeholder="Buscar… ⌘K"
+        placeholder="Buscar…"
         value={value}
         onChange={(e) => handleChange(e.target.value)}
-        className={cn(
-          "w-full h-8 pl-8 pr-8 rounded-[var(--radius)] text-xs",
-          "bg-[var(--bg-surface)] border border-[var(--border)]",
-          "text-[var(--text-primary)] placeholder:text-[var(--text-muted)]",
-          "focus:outline-none focus:border-[var(--blue)] focus:ring-1 focus:ring-[var(--blue)]/25",
-          "transition-all duration-150"
-        )}
+        className="h-8 pl-8 pr-8 text-xs"
       />
-
       {value && (
         <button
           onClick={() => handleChange("")}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
         >
           <X className="size-3" />
         </button>
@@ -186,23 +172,27 @@ function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <button
-      onClick={toggleTheme}
-      title={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      className={cn(
-        "size-8 rounded-[var(--radius)] flex items-center justify-center shrink-0",
-        "bg-[var(--bg-surface)] border border-[var(--border)]",
-        "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
-        "hover:bg-[var(--bg-elevated)] hover:border-[var(--border-subtle)]",
-        "transition-all duration-150"
-      )}
-    >
-      {theme === "dark" ? (
-        <Sun className="size-3.5" />
-      ) : (
-        <Moon className="size-3.5" />
-      )}
-    </button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="size-8"
+          />
+        }
+      >
+        {theme === "dark" ? (
+          <Sun className="size-3.5" />
+        ) : (
+          <Moon className="size-3.5" />
+        )}
+      </TooltipTrigger>
+      <TooltipContent>
+        {theme === "dark" ? "Modo claro" : "Modo oscuro"}
+      </TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -213,7 +203,6 @@ export default function Header({ onSync, lastSyncAt, onSearch, userName, notific
   const [syncState, setSyncState] = useState<SyncState>("idle");
   const [syncStats, setSyncStats] = useState<SyncStats | null>(null);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Hydration-safe greeting
   const [greeting, setGreeting] = useState<string>("");
   const [dateStr,  setDateStr]  = useState<string>("");
 
@@ -258,80 +247,65 @@ export default function Header({ onSync, lastSyncAt, onSearch, userName, notific
     <header
       className={cn(
         "sticky top-0 z-40 h-[var(--header-h)]",
-        "glass border-b border-[var(--border)]",
+        "glass border-b border-border",
         "flex items-center gap-3 px-4 md:px-6",
         "shrink-0"
       )}
     >
-      {/* Page Title / Greeting */}
       {isDashboard && userName && greeting ? (
         <div className="shrink-0">
-          <p className="text-sm font-semibold text-[var(--text-primary)] leading-tight">
+          <p className="text-sm font-semibold text-foreground leading-tight">
             {greeting}
           </p>
-          <p className="text-[10px] text-[var(--text-muted)] capitalize mt-0.5 hidden sm:block">
+          <p className="text-[10px] text-muted-foreground capitalize mt-0.5 hidden sm:block">
             {dateStr}
           </p>
         </div>
       ) : (
-        <h1 className="text-sm font-semibold text-[var(--text-primary)] shrink-0 tracking-tight">
+        <h1 className="text-sm font-semibold text-foreground shrink-0 tracking-tight">
           {title}
         </h1>
       )}
 
-      {/* Divider */}
-      <div className="w-px h-4 bg-[var(--border)] shrink-0" />
+      <div className="w-px h-4 bg-border shrink-0" />
 
-      {/* Search */}
       <SearchBar onSearch={onSearch} />
 
-      {/* Right actions */}
       <div className="flex items-center gap-2 ml-auto shrink-0">
-        {/* Last sync timestamp */}
         {lastSyncAt && syncState === "idle" && (
-          <span className="hidden lg:block text-[10px] text-[var(--text-muted)] font-mono">
+          <span className="hidden lg:block text-[10px] text-muted-foreground font-mono">
             {formatRelativeDate(lastSyncAt)}
           </span>
         )}
 
-        {/* Sync button */}
         <SyncButton
           state={syncState}
           stats={syncStats}
           onClick={handleSync}
         />
 
-        {/* Notifications */}
-        <button
-          title="Notificaciones"
-          className={cn(
-            "relative size-8 rounded-[var(--radius)] flex items-center justify-center shrink-0",
-            "bg-[var(--bg-surface)] border border-[var(--border)]",
-            "text-[var(--text-muted)] hover:text-[var(--text-primary)]",
-            "hover:bg-[var(--bg-elevated)] transition-all duration-150"
-          )}
-        >
-          <Bell className="size-3.5" />
-          {notificationCount > 0 && (
-            <span className="absolute -top-1 -right-1 size-4 rounded-full bg-[var(--red)] text-white text-[9px] font-bold flex items-center justify-center leading-none">
-              {notificationCount > 9 ? "9+" : notificationCount}
-            </span>
-          )}
-        </button>
+        <Tooltip>
+          <TooltipTrigger
+            render={<Button variant="outline" size="icon" className="relative size-8" />}
+          >
+            <Bell className="size-3.5" />
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-white text-[9px] font-bold flex items-center justify-center leading-none">
+                {notificationCount > 9 ? "9+" : notificationCount}
+              </span>
+            )}
+          </TooltipTrigger>
+          <TooltipContent>Notificaciones</TooltipContent>
+        </Tooltip>
 
-        {/* Theme toggle */}
         <ThemeToggle />
 
-        {/* Avatar */}
         {avatarInitials && (
-          <div className={cn(
-            "size-8 rounded-full flex items-center justify-center shrink-0",
-            "bg-[var(--blue-dim)] border border-[var(--blue)]/30",
-            "text-[var(--blue)] text-[11px] font-bold select-none cursor-pointer",
-            "hover:brightness-110 transition-all duration-150"
-          )}>
-            {avatarInitials}
-          </div>
+          <Avatar className="size-8 cursor-pointer">
+            <AvatarFallback className="text-[11px] font-bold bg-primary/10 text-primary">
+              {avatarInitials}
+            </AvatarFallback>
+          </Avatar>
         )}
       </div>
     </header>

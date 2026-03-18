@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+    { media: "(prefers-color-scheme: dark)", color: "#0A0A0F" },
     { media: "(prefers-color-scheme: light)", color: "#F2F3F8" },
   ],
   width: "device-width",
@@ -21,8 +21,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body suppressHydrationWarning className="min-h-dvh bg-bg-base text-text-primary font-sans antialiased">
+    <html lang="es" suppressHydrationWarning className={`dark ${geistSans.variable} ${geistMono.variable}`}>
+      <body suppressHydrationWarning className="min-h-dvh antialiased">
         {children}
       </body>
     </html>

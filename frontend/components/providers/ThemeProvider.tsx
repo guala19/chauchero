@@ -22,10 +22,10 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 function applyTheme(t: Theme) {
-  if (t === "light") {
-    document.documentElement.classList.add("theme-light");
+  if (t === "dark") {
+    document.documentElement.classList.add("dark");
   } else {
-    document.documentElement.classList.remove("theme-light");
+    document.documentElement.classList.remove("dark");
   }
 }
 

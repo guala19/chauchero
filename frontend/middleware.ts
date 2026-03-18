@@ -26,7 +26,15 @@ export function middleware(request: NextRequest) {
       path: "/",
       maxAge: TOKEN_MAX_AGE,
       sameSite: "lax",
-      httpOnly: false, // needs to be readable by JS for API calls
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+    // Non-httpOnly marker so client JS can check auth state without reading the token
+    response.cookies.set("ch-session", "1", {
+      path: "/",
+      maxAge: TOKEN_MAX_AGE,
+      sameSite: "lax",
+      httpOnly: false,
     });
     return response;
   }

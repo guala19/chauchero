@@ -6,20 +6,11 @@ import {
   Mail, RefreshCw, CheckCircle2, Clock,
   AlertCircle, LogOut, Building2,
 } from "lucide-react";
-import { formatDate, formatRelativeDate } from "@/lib/format";
+import { formatRelativeDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-function getToken(): string {
-  if (typeof document === "undefined") return "";
-  return (
-    document.cookie
-      .split("; ")
-      .find((r) => r.startsWith("auth-token="))
-      ?.split("=")[1] ?? ""
-  );
-}
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface User {
   id: string;
@@ -42,16 +33,17 @@ export default function AccountsClient({ user, transactionCount }: Props) {
   const [lastSync, setLastSync] = useState<string | null>(user?.last_sync_at ?? null);
 
   const handleSync = useCallback(async () => {
-    const token = getToken();
-    if (!token) return;
     setSyncState("syncing");
     setSyncMessage("");
     try {
       const res = await fetch(
-        `${API_URL}/transactions/sync?token=${token}&max_emails=200`,
-        { method: "POST" }
+        "/api/transactions/sync?max_emails=200",
+        { method: "POST" },
       );
-      if (!res.ok) throw new Error("Error en la sincronización");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.detail ?? "Error en la sincronización");
+      }
       const data = await res.json();
       const created = data.stats?.transactions_created ?? 0;
       setSyncMessage(
@@ -68,18 +60,18 @@ export default function AccountsClient({ user, transactionCount }: Props) {
     }
   }, [router]);
 
-  const handleDisconnect = useCallback(() => {
-    document.cookie = "auth-token=; path=/; max-age=0; SameSite=Lax";
+  const handleDisconnect = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
     router.push("/");
   }, [router]);
 
   if (!user) {
     return (
       <div className="space-y-5">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Cuentas</h1>
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] p-8 text-center">
-          <p className="text-sm text-[var(--text-muted)]">No se pudo cargar la información de la cuenta.</p>
-        </div>
+        <h1 className="text-2xl font-bold text-foreground">Cuentas</h1>
+        <Card className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">No se pudo cargar la información de la cuenta.</p>
+        </Card>
       </div>
     );
   }
@@ -88,81 +80,73 @@ export default function AccountsClient({ user, transactionCount }: Props) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[var(--text-primary)]">Cuentas</h1>
-        <p className="text-sm text-[var(--text-muted)] mt-0.5">
+        <h1 className="text-2xl font-bold text-foreground">Cuentas</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
           Gestiona tu conexión con Gmail y los bancos sincronizados
         </p>
       </div>
 
       {/* Google Account Card */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-hidden">
+      <Card>
         {/* Card header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[var(--border)]">
-          <div className="size-8 rounded-lg bg-[var(--green-dim)] flex items-center justify-center">
-            <CheckCircle2 className="size-4 text-[var(--green)]" />
+        <CardHeader className="flex-row items-center gap-3 pb-3">
+          <div className="size-8 rounded-lg bg-ch-green-dim flex items-center justify-center">
+            <CheckCircle2 className="size-4 text-ch-green" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-[var(--text-primary)]">Cuenta de Google</h2>
-            <p className="text-[11px] text-[var(--green)]">Conectada</p>
+            <CardTitle className="text-sm">Cuenta de Google</CardTitle>
+            <CardDescription className="text-ch-green text-[11px]">Conectada</CardDescription>
           </div>
-        </div>
+        </CardHeader>
 
         {/* Account info */}
-        <div className="px-5 py-4 space-y-4">
-          {/* Email */}
+        <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
-              <Mail className="size-4 text-[var(--text-muted)]" />
+            <div className="size-9 rounded-full bg-muted flex items-center justify-center">
+              <Mail className="size-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-[var(--text-muted)]">Gmail vinculado</p>
-              <p className="text-[13px] font-medium text-[var(--text-primary)]">{user.email}</p>
+              <p className="text-[11px] text-muted-foreground">Gmail vinculado</p>
+              <p className="text-[13px] font-medium text-foreground">{user.email}</p>
             </div>
           </div>
 
-          {/* Last sync */}
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
-              <Clock className="size-4 text-[var(--text-muted)]" />
+            <div className="size-9 rounded-full bg-muted flex items-center justify-center">
+              <Clock className="size-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-[var(--text-muted)]">Última sincronización</p>
-              <p className="text-[13px] font-medium text-[var(--text-primary)]">
+              <p className="text-[11px] text-muted-foreground">Última sincronización</p>
+              <p className="text-[13px] font-medium text-foreground">
                 {lastSync ? formatRelativeDate(lastSync) : "Nunca sincronizado"}
               </p>
             </div>
           </div>
 
-          {/* Transaction count */}
           <div className="flex items-center gap-3">
-            <div className="size-9 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
-              <Building2 className="size-4 text-[var(--text-muted)]" />
+            <div className="size-9 rounded-full bg-muted flex items-center justify-center">
+              <Building2 className="size-4 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-[var(--text-muted)]">Transacciones encontradas</p>
-              <p className="text-[13px] font-medium text-[var(--text-primary)]">
+              <p className="text-[11px] text-muted-foreground">Transacciones encontradas</p>
+              <p className="text-[13px] font-medium text-foreground">
                 {transactionCount} transacciones
               </p>
             </div>
           </div>
-        </div>
+        </CardContent>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 px-5 py-4 border-t border-[var(--border)] bg-[var(--bg-elevated)]">
-          {/* Sync button */}
-          <button
+        <div className="flex flex-col sm:flex-row gap-3 px-6 py-4 border-t border-border bg-muted/30">
+          <Button
             onClick={handleSync}
             disabled={syncState === "syncing"}
             className={cn(
-              "flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-[var(--radius)] text-sm font-semibold transition-all",
-              syncState === "syncing"
-                ? "bg-[var(--blue)]/60 text-white cursor-not-allowed"
-                : syncState === "success"
-                  ? "bg-[var(--green-dim)] text-[var(--green)] border border-[var(--green)]/30"
-                  : syncState === "error"
-                    ? "bg-[var(--red-dim)] text-[var(--red)] border border-[var(--red)]/30"
-                    : "bg-[var(--blue)] text-white hover:opacity-90"
+              "flex-1 gap-2",
+              syncState === "success" && "bg-ch-green-dim text-ch-green border border-ch-green/30 hover:bg-ch-green-dim",
+              syncState === "error" && "bg-ch-red-dim text-destructive border border-destructive/30 hover:bg-ch-red-dim"
             )}
+            variant={syncState === "success" || syncState === "error" ? "outline" : "default"}
           >
             {syncState === "syncing" ? (
               <RefreshCw className="size-4 animate-spin" />
@@ -180,45 +164,45 @@ export default function AccountsClient({ user, transactionCount }: Props) {
                 : syncState === "error"
                   ? "Reintentar"
                   : "Sincronizar Gmail ahora"}
-          </button>
+          </Button>
 
-          {/* Disconnect */}
-          <button
+          <Button
+            variant="outline"
             onClick={handleDisconnect}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-[var(--radius)] text-sm font-medium text-[var(--text-muted)] border border-[var(--border)] hover:border-[var(--red)]/40 hover:text-[var(--red)] transition-colors"
+            className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive/40"
           >
             <LogOut className="size-4" />
             Desconectar cuenta
-          </button>
+          </Button>
         </div>
 
-        {/* Sync feedback message */}
+        {/* Sync feedback */}
         {syncMessage && (
           <div className={cn(
-            "px-5 py-3 text-[12px] border-t border-[var(--border)]",
-            syncState === "success" ? "text-[var(--green)] bg-[var(--green-dim)]" : "text-[var(--red)] bg-[var(--red-dim)]"
+            "px-6 py-3 text-[12px] border-t border-border",
+            syncState === "success" ? "text-ch-green bg-ch-green-dim" : "text-destructive bg-ch-red-dim"
           )}>
             {syncMessage}
           </div>
         )}
-      </div>
+      </Card>
 
-      {/* Supported banks info */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-hidden">
-        <div className="px-5 py-4 border-b border-[var(--border)]">
-          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Bancos soportados</h2>
-          <p className="text-[11px] text-[var(--text-muted)] mt-0.5">
+      {/* Supported banks */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm">Bancos soportados</CardTitle>
+          <CardDescription className="text-[11px]">
             Detectamos automáticamente correos de estos bancos en tu Gmail
-          </p>
-        </div>
-        <div className="divide-y divide-[var(--border-subtle)]">
+          </CardDescription>
+        </CardHeader>
+        <div className="divide-y divide-border">
           {[
             { name: "Banco de Chile", domain: "bancochile.cl", color: "#E31837", active: true },
             { name: "Santander",      domain: "santander.cl",  color: "#EC0000", active: false },
             { name: "BCI",            domain: "bci.cl",        color: "#003087", active: false },
             { name: "Scotiabank",     domain: "scotiabank.cl", color: "#EC111A", active: false },
           ].map((bank) => (
-            <div key={bank.name} className="flex items-center justify-between px-5 py-3.5">
+            <div key={bank.name} className="flex items-center justify-between px-6 py-3.5">
               <div className="flex items-center gap-3">
                 <div
                   className="size-8 rounded-lg flex items-center justify-center shrink-0 text-white text-[10px] font-bold"
@@ -227,22 +211,19 @@ export default function AccountsClient({ user, transactionCount }: Props) {
                   {bank.name.slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-[13px] font-medium text-[var(--text-primary)]">{bank.name}</p>
-                  <p className="text-[11px] text-[var(--text-muted)]">{bank.domain}</p>
+                  <p className="text-[13px] font-medium text-foreground">{bank.name}</p>
+                  <p className="text-[11px] text-muted-foreground">{bank.domain}</p>
                 </div>
               </div>
-              <span className={cn(
-                "text-[11px] font-medium px-2.5 py-1 rounded-full",
-                bank.active
-                  ? "bg-[var(--green-dim)] text-[var(--green)]"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
+              <Badge variant={bank.active ? "secondary" : "outline"} className={cn(
+                bank.active && "bg-ch-green-dim text-ch-green"
               )}>
                 {bank.active ? "Activo" : "Próximamente"}
-              </span>
+              </Badge>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

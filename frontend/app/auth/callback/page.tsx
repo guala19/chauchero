@@ -4,12 +4,19 @@ import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
-const TOKEN_MAX_AGE = 7 * 24 * 60 * 60; // 7 days in seconds
+/**
+ * Fallback callback handler.
+ *
+ * The middleware at middleware.ts handles /auth/callback by setting the
+ * httpOnly cookie and redirecting to /dashboard — so this page should
+ * rarely render. It exists as a safety net in case middleware doesn't
+ * intercept (e.g. static export, edge runtime mismatch).
+ */
 
 function CallbackHandler() {
-  const router     = useRouter();
-  const params     = useSearchParams();
-  const processed  = useRef(false);
+  const router = useRouter();
+  const params = useSearchParams();
+  const processed = useRef(false);
 
   useEffect(() => {
     if (processed.current) return;
@@ -23,9 +30,9 @@ function CallbackHandler() {
       return;
     }
 
-    // Set auth-token cookie (readable by JS since we need it for API calls)
-    document.cookie = `auth-token=${token}; path=/; max-age=${TOKEN_MAX_AGE}; SameSite=Lax`;
-
+    // Middleware should have already set the httpOnly cookie and redirected.
+    // If we got here, just redirect to dashboard — the middleware will
+    // handle the cookie on the next request cycle.
     router.replace("/dashboard");
   }, [params, router]);
 

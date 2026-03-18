@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { formatCLPCompact } from "@/lib/format";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export interface MonthData {
-  label: string;   // "Mar"
-  total: number;   // total gastos ese mes
-  month: string;   // "mar 2026" (tooltip)
+  label: string;
+  total: number;
+  month: string;
 }
 
 // ─── SVG constants ────────────────────────────────────────────────────────────
@@ -36,7 +38,6 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
 
   const activeIdx = hoverIdx ?? defaultIdx;
   const maxVal = Math.max(...months.map((m) => m.total), 1);
-  // Round max up to a nice number
   const niceMax = Math.ceil(maxVal / 50000) * 50000 || 50000;
   const yTicks = [niceMax * 0.25, niceMax * 0.5, niceMax * 0.75].map(Math.round);
 
@@ -49,26 +50,21 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
       : "";
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
-        <h2 className="text-sm font-semibold text-[var(--text-primary)]">
-          Gastos Mensuales
-        </h2>
-        <span className="text-xs text-[var(--text-muted)] border border-[var(--border)] px-2.5 py-1.5 rounded-[var(--radius)]">
+    <Card>
+      <CardHeader className="flex-row items-center justify-between pb-3">
+        <CardTitle className="text-sm">Gastos Mensuales</CardTitle>
+        <Badge variant="outline" className="text-xs font-normal">
           {rangeLabel}
-        </span>
-      </div>
+        </Badge>
+      </CardHeader>
 
-      {/* Chart */}
-      <div className="px-4 pt-3 pb-2">
+      <CardContent className="pt-0 pb-2">
         <svg
           viewBox={`0 0 ${VW} ${VH}`}
           className="w-full"
           style={{ height: VH }}
           onMouseLeave={() => setHoverIdx(null)}
         >
-          {/* Y-axis grid + labels */}
           {yTicks.map((val) => {
             const y = toY(val, niceMax);
             return (
@@ -83,7 +79,7 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
                   x={PAD.left - 6} y={y}
                   textAnchor="end"
                   dominantBaseline="middle"
-                  fill="var(--text-muted)"
+                  fill="var(--muted-foreground)"
                   fontSize={9}
                 >
                   {val >= 1000 ? `${val / 1000}K` : val}
@@ -92,7 +88,6 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
             );
           })}
 
-          {/* Bars */}
           {months.map((month, i) => {
             const x = barLeft(i, months.length, barW);
             const isActive = i === activeIdx;
@@ -100,10 +95,10 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
             const barY = toY(month.total, niceMax);
             const fill =
               month.total === 0
-                ? "var(--bg-overlay)"
+                ? "var(--muted)"
                 : isActive
-                ? "var(--blue)"
-                : "var(--bg-overlay)";
+                ? "var(--primary)"
+                : "var(--muted)";
             return (
               <g key={i} onMouseEnter={() => setHoverIdx(i)} style={{ cursor: "pointer" }}>
                 <rect
@@ -116,7 +111,6 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
             );
           })}
 
-          {/* Tooltip */}
           {(() => {
             const m = months[activeIdx];
             if (!m) return null;
@@ -126,11 +120,11 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
             const tw = label.length * 6.2 + 20;
             return (
               <g>
-                <rect x={tx - tw / 2} y={ty - 22} width={tw} height={24} fill="#1E293B" rx={4} />
+                <rect x={tx - tw / 2} y={ty - 22} width={tw} height={24} fill="var(--popover)" rx={4} />
                 <text
                   x={tx} y={ty - 7}
                   textAnchor="middle"
-                  fill="white"
+                  fill="var(--popover-foreground)"
                   fontSize={10}
                   fontWeight="600"
                 >
@@ -138,20 +132,19 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
                 </text>
                 <polygon
                   points={`${tx - 5},${ty + 2} ${tx + 5},${ty + 2} ${tx},${ty + 7}`}
-                  fill="#1E293B"
+                  fill="var(--popover)"
                 />
               </g>
             );
           })()}
 
-          {/* X-axis labels */}
           {months.map((month, i) => (
             <text
               key={i}
               x={barLeft(i, months.length, barW) + barW / 2}
               y={PAD.top + CH + 18}
               textAnchor="middle"
-              fill={i === activeIdx ? "var(--text-primary)" : "var(--text-muted)"}
+              fill={i === activeIdx ? "var(--foreground)" : "var(--muted-foreground)"}
               fontSize={10}
               fontWeight={i === activeIdx ? "600" : "400"}
             >
@@ -159,7 +152,7 @@ export default function MonthlyBarChart({ months }: { months: MonthData[] }) {
             </text>
           ))}
         </svg>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

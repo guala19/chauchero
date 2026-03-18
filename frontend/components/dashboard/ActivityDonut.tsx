@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCLPCompact } from "@/lib/format";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export interface DonutSegment {
   color: string;
@@ -44,21 +45,20 @@ export default function ActivityDonut({
   total: number;
   txCount: number;
 }) {
-  // Empty state: single grey ring
   if (segments.length === 0 || total === 0) {
     return (
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)]">Breakdown</h3>
-          <span className="text-xs text-[var(--text-muted)]">Sin datos</span>
-        </div>
-        <div className="flex justify-center">
+      <Card>
+        <CardHeader className="flex-row items-center justify-between pb-3">
+          <CardTitle className="text-sm">Breakdown</CardTitle>
+          <span className="text-xs text-muted-foreground">Sin datos</span>
+        </CardHeader>
+        <CardContent className="flex justify-center pb-5">
           <svg viewBox="0 0 180 180" className="w-36 h-36">
-            <circle cx={CX} cy={CY} r={(OR + IR) / 2} fill="none" stroke="var(--bg-elevated)" strokeWidth={OR - IR} />
-            <text x={CX} y={CY + 5} textAnchor="middle" fill="var(--text-muted)" fontSize={10}>Sin gastos</text>
+            <circle cx={CX} cy={CY} r={(OR + IR) / 2} fill="none" stroke="var(--muted)" strokeWidth={OR - IR} />
+            <text x={CX} y={CY + 5} textAnchor="middle" fill="var(--muted-foreground)" fontSize={10}>Sin gastos</text>
           </svg>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -71,42 +71,41 @@ export default function ActivityDonut({
   });
 
   return (
-    <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] p-5">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)]">Breakdown</h3>
-        <span className="text-xs text-[var(--text-muted)]">{txCount} transacciones</span>
-      </div>
+    <Card>
+      <CardHeader className="flex-row items-center justify-between pb-3">
+        <CardTitle className="text-sm">Breakdown</CardTitle>
+        <span className="text-xs text-muted-foreground">{txCount} transacciones</span>
+      </CardHeader>
 
-      {/* Donut chart */}
-      <div className="flex justify-center">
-        <svg viewBox="0 0 180 180" className="w-36 h-36">
-          {paths.map((p, i) => (
-            <path key={i} d={p.path} fill={p.color} />
-          ))}
-          <text x={CX} y={CY - 6} textAnchor="middle" fill="var(--text-muted)" fontSize={9}>
-            Gastos
-          </text>
-          <text x={CX} y={CY + 8} textAnchor="middle" fill="var(--text-primary)" fontSize={11} fontWeight="700">
-            {formatCLPCompact(total)}
-          </text>
-        </svg>
-      </div>
+      <CardContent className="pb-5">
+        <div className="flex justify-center">
+          <svg viewBox="0 0 180 180" className="w-36 h-36">
+            {paths.map((p, i) => (
+              <path key={i} d={p.path} fill={p.color} />
+            ))}
+            <text x={CX} y={CY - 6} textAnchor="middle" fill="var(--muted-foreground)" fontSize={9}>
+              Gastos
+            </text>
+            <text x={CX} y={CY + 8} textAnchor="middle" fill="var(--foreground)" fontSize={11} fontWeight="700">
+              {formatCLPCompact(total)}
+            </text>
+          </svg>
+        </div>
 
-      {/* Legend */}
-      <div className="mt-3 space-y-2">
-        {segments.map((seg, i) => (
-          <div key={i} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="size-2 rounded-full shrink-0" style={{ background: seg.color }} />
-              <span className="text-[11px] text-[var(--text-muted)]">{seg.label}</span>
+        <div className="mt-3 space-y-2">
+          {segments.map((seg, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="size-2 rounded-full shrink-0" style={{ background: seg.color }} />
+                <span className="text-[11px] text-muted-foreground">{seg.label}</span>
+              </div>
+              <span className="text-[11px] font-mono text-foreground/70">
+                {formatCLPCompact(seg.amount)}
+              </span>
             </div>
-            <span className="text-[11px] font-mono text-[var(--text-secondary)]">
-              {formatCLPCompact(seg.amount)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -60,21 +60,21 @@ export const TRANSACTION_STYLES: Record<
 > = {
   income: {
     text: "text-ch-green",
-    bg: "bg-green-dim",
+    bg: "bg-ch-green-dim",
     border: "border-ch-green/20",
-    hex: "#16C784",
+    hex: "#22C55E",
   },
   expense: {
     text: "text-ch-red",
-    bg: "bg-red-dim",
+    bg: "bg-ch-red-dim",
     border: "border-ch-red/20",
     hex: "#EF4444",
   },
   transfer: {
     text: "text-ch-blue",
-    bg: "bg-blue-dim",
+    bg: "bg-ch-blue-dim",
     border: "border-ch-blue/20",
-    hex: "#5B7FFF",
+    hex: "#818CF8",
   },
 };
 
@@ -87,9 +87,9 @@ export interface ConfidenceLevel {
 }
 
 export function getConfidenceLevel(score: number): ConfidenceLevel {
-  if (score >= 80) return { label: "Alta", text: "text-ch-green", bg: "bg-green-dim" };
-  if (score >= 50) return { label: "Media", text: "text-ch-amber", bg: "bg-amber-dim" };
-  return { label: "Baja", text: "text-ch-red", bg: "bg-red-dim" };
+  if (score >= 80) return { label: "Alta", text: "text-ch-green", bg: "bg-ch-green-dim" };
+  if (score >= 50) return { label: "Media", text: "text-ch-amber", bg: "bg-ch-amber-dim" };
+  return { label: "Baja", text: "text-ch-red", bg: "bg-ch-red-dim" };
 }
 
 // ─── Banks ───────────────────────────────────────────────────────────────────
@@ -115,7 +115,6 @@ export const SUPPORTED_BANKS: Bank[] = [
 export const APP = {
   name: "Chauchero",
   tagline: "Tu dinero, claro.",
-  apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000",
   defaultSyncLimit: 50,
   syncLimitOptions: [10, 50, 100, 200] as const,
 } as const;
@@ -123,8 +122,8 @@ export const APP = {
 // ─── Color Palette Reference ──────────────────────────────────────────────────
 
 export const COLORS = {
-  green: "#16C784",
+  green: "#22C55E",
   red:   "#EF4444",
-  blue:  "#5B7FFF",
+  blue:  "#818CF8",
   amber: "#F0A500",
 } as const;

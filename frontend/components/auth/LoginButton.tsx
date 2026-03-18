@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export default function LoginButton() {
   const [loading, setLoading] = useState(false);
@@ -12,8 +12,14 @@ export default function LoginButton() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/auth/google/login`);
-      if (!res.ok) throw new Error("No se pudo iniciar el proceso de login");
+      const res = await fetch("/api/auth/login");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        if (res.status === 502) {
+          throw new Error("El servidor no está disponible. Asegúrate de que el backend esté corriendo.");
+        }
+        throw new Error(body?.detail ?? "No se pudo iniciar el proceso de login");
+      }
       const { auth_url } = await res.json();
       window.location.href = auth_url;
     } catch (e) {
@@ -24,16 +30,14 @@ export default function LoginButton() {
 
   return (
     <div className="space-y-3">
-      <button
+      <Button
         onClick={handleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-[var(--radius)] bg-white text-gray-800 text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed border border-gray-200 shadow-sm"
+        variant="outline"
+        className="w-full gap-3 bg-white text-gray-800 border-gray-200 hover:bg-gray-50 shadow-sm"
       >
         {loading ? (
-          <svg className="size-4 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-          </svg>
+          <Loader2 className="size-4 animate-spin" />
         ) : (
           <svg className="size-4" viewBox="0 0 48 48">
             <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
@@ -43,10 +47,10 @@ export default function LoginButton() {
           </svg>
         )}
         {loading ? "Redirigiendo…" : "Continuar con Google"}
-      </button>
+      </Button>
 
       {error && (
-        <p className="text-[12px] text-[var(--red)] text-center">{error}</p>
+        <p className="text-[12px] text-destructive text-center">{error}</p>
       )}
     </div>
   );

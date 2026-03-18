@@ -16,9 +16,8 @@ class UserResponse(UserBase):
     id: UUID
     created_at: datetime
     last_sync_at: Optional[datetime] = None
-    
-    class Config:
-        from_attributes = True
+
+    model_config = {"from_attributes": True}
 
 
 class TokenResponse(BaseModel):

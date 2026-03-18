@@ -10,6 +10,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface User {
   email: string;
@@ -30,29 +39,27 @@ function LogoMark({ collapsed }: { collapsed: boolean }) {
     <div
       className={cn(
         "flex items-center gap-3 h-[var(--header-h)] shrink-0",
-        "border-b border-[var(--border)] px-4",
+        "border-b border-sidebar-border px-4",
         "overflow-hidden"
       )}
     >
-      {/* Icon */}
       <div className="relative size-8 shrink-0">
-        <div className="absolute inset-0 rounded-lg bg-[var(--blue)] opacity-20 blur-[6px]" />
-        <div className="relative size-8 rounded-lg bg-[var(--blue)] flex items-center justify-center">
-          <span className="font-mono font-bold text-white text-sm leading-none">₡</span>
+        <div className="absolute inset-0 rounded-lg bg-primary opacity-20 blur-[6px]" />
+        <div className="relative size-8 rounded-lg bg-primary flex items-center justify-center">
+          <span className="font-mono font-bold text-primary-foreground text-sm leading-none">₡</span>
         </div>
       </div>
 
-      {/* Wordmark */}
       <div
         className={cn(
           "flex flex-col min-w-0 transition-all duration-280 ease-in-out",
           collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
         )}
       >
-        <span className="text-sm font-semibold text-[var(--text-primary)] tracking-tight leading-tight">
+        <span className="text-sm font-semibold text-sidebar-foreground tracking-tight leading-tight">
           {APP.name}
         </span>
-        <span className="text-[10px] text-[var(--text-muted)] leading-tight">
+        <span className="text-[10px] text-muted-foreground leading-tight">
           {APP.tagline}
         </span>
       </div>
@@ -73,30 +80,25 @@ function NavLink({
 }) {
   const Icon = item.icon;
 
-  return (
+  const link = (
     <Link
       href={item.href}
-      title={collapsed ? item.label : undefined}
       className={cn(
-        "group relative flex items-center gap-3 h-9 px-2.5 rounded-[var(--radius)]",
+        "group relative flex items-center gap-3 h-9 px-2.5 rounded-md",
         "text-sm font-medium transition-all duration-150 select-none",
         isActive
-          ? "bg-[var(--blue-dim)] text-[var(--blue)]"
-          : [
-              "text-[var(--text-secondary)]",
-              "hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
-            ]
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
       )}
     >
-      {/* Active indicator */}
       {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[var(--blue)] rounded-r-full" />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
       )}
 
       <Icon
         className={cn(
           "size-4 shrink-0 transition-colors duration-150",
-          isActive ? "text-[var(--blue)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
         )}
         strokeWidth={isActive ? 2.5 : 2}
       />
@@ -110,20 +112,24 @@ function NavLink({
         {item.label}
       </span>
 
-      {/* Badge */}
       {"badge" in item && item.badge ? (
-        <span
-          className={cn(
-            "ml-auto shrink-0 text-[10px] font-semibold font-mono",
-            "px-1.5 py-0.5 rounded-full bg-[var(--blue)] text-white leading-none",
-            collapsed && "hidden"
-          )}
-        >
+        <Badge variant="default" className={cn("ml-auto shrink-0 text-[10px] px-1.5 py-0.5", collapsed && "hidden")}>
           {item.badge}
-        </span>
+        </Badge>
       ) : null}
     </Link>
   );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger render={<span />}>{link}</TooltipTrigger>
+        <TooltipContent side="right">{item.label}</TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return link;
 }
 
 // ─── User Footer ──────────────────────────────────────────────────────────────
@@ -146,22 +152,20 @@ function UserFooter({
   const displayName = user?.name ?? user?.email?.split("@")[0] ?? "Usuario";
 
   return (
-    <div className="shrink-0 border-t border-[var(--border)] p-2 space-y-0.5">
-      {/* User info */}
+    <div className="shrink-0 border-t border-sidebar-border p-2 space-y-0.5">
       {user && (
         <div
           className={cn(
-            "flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--radius)]",
-            "text-[var(--text-secondary)] overflow-hidden",
+            "flex items-center gap-2.5 px-2.5 py-2 rounded-md",
+            "text-muted-foreground overflow-hidden",
             collapsed && "justify-center"
           )}
         >
-          {/* Avatar */}
-          <div className="size-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] flex items-center justify-center shrink-0">
-            <span className="text-[10px] font-bold text-[var(--text-secondary)]">
+          <Avatar className="size-7">
+            <AvatarFallback className="text-[10px] font-bold bg-secondary text-muted-foreground">
               {initials}
-            </span>
-          </div>
+            </AvatarFallback>
+          </Avatar>
 
           <div
             className={cn(
@@ -169,25 +173,23 @@ function UserFooter({
               collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
             )}
           >
-            <span className="text-[11px] font-medium text-[var(--text-primary)] truncate">
+            <span className="text-[11px] font-medium text-sidebar-foreground truncate">
               {displayName}
             </span>
-            <span className="text-[10px] text-[var(--text-muted)] truncate">
+            <span className="text-[10px] text-muted-foreground truncate">
               {user.email}
             </span>
           </div>
         </div>
       )}
 
-      {/* Logout */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onLogout}
-        title={collapsed ? "Cerrar sesión" : undefined}
         className={cn(
-          "w-full flex items-center gap-3 h-8 px-2.5 rounded-[var(--radius)]",
-          "text-xs text-[var(--text-muted)]",
-          "hover:text-[var(--red)] hover:bg-[var(--red-dim)]",
-          "transition-colors duration-150",
+          "w-full justify-start gap-3 h-8 px-2.5 text-xs text-muted-foreground",
+          "hover:text-destructive hover:bg-ch-red-dim",
           collapsed && "justify-center"
         )}
       >
@@ -200,19 +202,17 @@ function UserFooter({
         >
           Cerrar sesión
         </span>
-      </button>
+      </Button>
 
-      {/* Collapse toggle */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={onToggle}
         className={cn(
-          "w-full flex items-center gap-3 h-8 px-2.5 rounded-[var(--radius)]",
-          "text-xs text-[var(--text-muted)]",
-          "hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
-          "transition-colors duration-150",
+          "w-full h-8 px-2.5 text-xs text-muted-foreground",
+          "hover:text-foreground hover:bg-secondary",
           collapsed ? "justify-center" : "justify-between"
         )}
-        title={collapsed ? "Expandir sidebar" : undefined}
       >
         {!collapsed && (
           <span className="flex items-center gap-1.5">
@@ -225,7 +225,7 @@ function UserFooter({
         ) : (
           <ChevronLeft className="size-3.5" />
         )}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -239,7 +239,7 @@ function MobileBottomNav() {
     <nav
       className={cn(
         "md:hidden fixed bottom-0 left-0 right-0 z-50",
-        "bg-[var(--bg-surface)] border-t border-[var(--border)]",
+        "bg-card border-t border-border",
         "flex items-center justify-around",
         "px-2 pt-2 pb-safe"
       )}
@@ -258,8 +258,8 @@ function MobileBottomNav() {
               "flex flex-col items-center gap-1 px-4 py-1.5 rounded-lg",
               "transition-colors duration-150",
               isActive
-                ? "text-[var(--blue)]"
-                : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             <Icon
@@ -292,7 +292,7 @@ export default function Sidebar({
       <aside
         className={cn(
           "hidden md:flex flex-col h-screen sticky top-0 z-30",
-          "bg-[var(--bg-surface)] border-r border-[var(--border)]",
+          "bg-sidebar border-r border-sidebar-border",
           "sidebar-transition shrink-0 overflow-hidden",
           collapsed ? "w-[var(--sidebar-collapsed-w)]" : "w-[var(--sidebar-w)]"
         )}
@@ -305,16 +305,14 @@ export default function Sidebar({
       >
         <LogoMark collapsed={collapsed} />
 
-        {/* Nav section label */}
         {!collapsed && (
           <div className="px-4 pt-4 pb-1">
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
               Menú
             </span>
           </div>
         )}
 
-        {/* Navigation links */}
         <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {NAV_ITEMS.map((item) => {
             const isActive =
@@ -340,7 +338,6 @@ export default function Sidebar({
         />
       </aside>
 
-      {/* Mobile Bottom Nav */}
       <MobileBottomNav />
     </>
   );

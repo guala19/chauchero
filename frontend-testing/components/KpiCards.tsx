@@ -3,6 +3,7 @@
 import { TrendingDown, TrendingUp, Wallet, ArrowDownUp } from "lucide-react";
 import { formatCLP, formatPercent } from "@/lib/format";
 import { KPI_DATA } from "@/lib/mock-data";
+import { Card } from "@/components/ui/card";
 
 function delta(current: number, previous: number) {
   if (previous === 0) return 0;
@@ -46,10 +47,10 @@ const kpis = [
 ];
 
 const iconStyles = {
-  red:   { bg: "bg-red-dim",   text: "text-ch-red" },
-  green: { bg: "bg-green-dim", text: "text-ch-green" },
-  blue:  { bg: "bg-blue-dim",  text: "text-ch-blue" },
-  amber: { bg: "bg-amber-dim", text: "text-ch-amber" },
+  red:   { bg: "bg-ch-red-dim",   text: "text-ch-red" },
+  green: { bg: "bg-ch-green-dim", text: "text-ch-green" },
+  blue:  { bg: "bg-ch-blue-dim",  text: "text-ch-blue" },
+  amber: { bg: "bg-ch-amber-dim", text: "text-ch-amber" },
 };
 
 export default function KpiCards() {
@@ -62,34 +63,34 @@ export default function KpiCards() {
         const style = iconStyles[kpi.color];
 
         return (
-          <div
+          <Card
             key={kpi.label}
-            className={`animate-fade-in stagger-${i + 1} group relative overflow-hidden rounded-[14px] border border-border-subtle bg-bg-surface p-6 transition-all duration-150 hover:-translate-y-0.5`}
+            className={`animate-fade-in stagger-${i + 1} group relative overflow-hidden p-6 transition-all duration-150 hover:-translate-y-0.5`}
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[13px] font-medium text-text-secondary">{kpi.label}</span>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-[6px] ${style.bg}`}>
+              <span className="text-[13px] font-medium text-muted-foreground">{kpi.label}</span>
+              <div className={`flex size-8 items-center justify-center rounded-md ${style.bg}`}>
                 <Icon size={16} className={style.text} />
               </div>
             </div>
 
-            <p className="num text-[28px] font-bold leading-none tracking-tight text-text-primary">
+            <p className="num text-[28px] font-bold leading-none tracking-tight text-foreground">
               {kpi.isCount ? kpi.value : formatCLP(kpi.value)}
             </p>
 
             <div className="mt-3 flex items-center gap-1.5">
               <span
-                className={`inline-flex items-center rounded-[4px] px-1.5 py-0.5 text-[11px] font-semibold ${
+                className={`inline-flex items-center rounded-sm px-1.5 py-0.5 text-[11px] font-semibold ${
                   isPositive
-                    ? "bg-green-dim text-ch-green"
-                    : "bg-red-dim text-ch-red"
+                    ? "bg-ch-green-dim text-ch-green"
+                    : "bg-ch-red-dim text-ch-red"
                 }`}
               >
                 {formatPercent(change)}
               </span>
-              <span className="text-[11px] text-text-muted">vs mes anterior</span>
+              <span className="text-[11px] text-muted-foreground">vs mes anterior</span>
             </div>
-          </div>
+          </Card>
         );
       })}
     </div>

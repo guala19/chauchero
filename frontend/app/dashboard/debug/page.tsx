@@ -3,7 +3,7 @@ import DebugPanel from "./DebugPanel";
 
 export default async function DebugPage() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("auth-token")?.value ?? null;
+  const hasSession = !!cookieStore.get("auth-token")?.value;
 
   return (
     <div className="space-y-5">
@@ -13,7 +13,7 @@ export default async function DebugPage() {
           Diagnóstico de Gmail + Parser en tiempo real
         </p>
       </div>
-      <DebugPanel token={token} />
+      <DebugPanel hasSession={hasSession} />
     </div>
   );
 }

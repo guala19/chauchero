@@ -1,130 +1,193 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* ─── Chauchero Design Tokens ─────────────────────────────────────────────── */
+@custom-variant dark (&:is(.dark *));
+
+/* ─── Chauchero — Fintech Modern Theme ───────────────────────────────────── */
 
 :root {
-  /* Backgrounds */
-  --bg-base:     #09090B;
-  --bg-surface:  #0E0F14;
-  --bg-elevated: #161720;
-  --bg-overlay:  #1C1D28;
+  --radius: 0.625rem;
 
-  /* Borders */
-  --border:        #1E2030;
-  --border-subtle: #181925;
+  /* shadcn semantic tokens — Light mode */
+  --background:           #F4F4F5;
+  --foreground:           #09090B;
+  --card:                 #FFFFFF;
+  --card-foreground:      #09090B;
+  --popover:              #FFFFFF;
+  --popover-foreground:   #09090B;
+  --primary:              #22C55E;
+  --primary-foreground:   #FFFFFF;
+  --secondary:            #F0F0F3;
+  --secondary-foreground: #18181B;
+  --muted:                #F0F0F3;
+  --muted-foreground:     #71717A;
+  --accent:               #EEF2FF;
+  --accent-foreground:    #4338CA;
+  --destructive:          #EF4444;
+  --border:               #E4E4E7;
+  --input:                #E4E4E7;
+  --ring:                 #22C55E;
 
-  /* Text */
-  --text-primary:   #F0F1F8;
-  --text-secondary: #8892AA;
-  --text-muted:     #474E65;
+  /* Charts */
+  --chart-1: #22C55E;
+  --chart-2: #6366F1;
+  --chart-3: #F0A500;
+  --chart-4: #EF4444;
+  --chart-5: #8B5CF6;
 
-  /* Accents — Income */
-  --green:     #16C784;
-  --green-dim: rgba(22, 199, 132, 0.10);
+  /* Sidebar */
+  --sidebar:                      #FFFFFF;
+  --sidebar-foreground:           #18181B;
+  --sidebar-primary:              #22C55E;
+  --sidebar-primary-foreground:   #FFFFFF;
+  --sidebar-accent:               #F0F0F3;
+  --sidebar-accent-foreground:    #18181B;
+  --sidebar-border:               #E4E4E7;
+  --sidebar-ring:                 #22C55E;
 
-  /* Accents — Expense */
-  --red:     #EF4444;
-  --red-dim: rgba(239, 68, 68, 0.10);
-
-  /* Accents — Primary Action */
-  --blue:     #5B7FFF;
-  --blue-dim: rgba(91, 127, 255, 0.12);
-
-  /* Accents — Warning */
-  --amber:     #F0A500;
-  --amber-dim: rgba(240, 165, 0, 0.10);
+  /* ── Chauchero semantic colors ── */
+  --ch-green:     #16A34A;
+  --ch-green-dim: rgba(22, 163, 74, 0.10);
+  --ch-red:       #EF4444;
+  --ch-red-dim:   rgba(239, 68, 68, 0.10);
+  --ch-blue:      #6366F1;
+  --ch-blue-dim:  rgba(99, 102, 241, 0.10);
+  --ch-amber:     #F0A500;
+  --ch-amber-dim: rgba(240, 165, 0, 0.10);
 
   /* Layout */
   --sidebar-w:           240px;
   --sidebar-collapsed-w: 60px;
   --header-h:            56px;
-
-  /* Radius */
-  --radius-sm: 4px;
-  --radius:    6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
 }
 
-/* ─── Light Theme ─────────────────────────────────────────────────────────── */
+.dark {
+  --background:           #0A0A0F;
+  --foreground:           #FAFAFA;
+  --card:                 #111118;
+  --card-foreground:      #FAFAFA;
+  --popover:              #111118;
+  --popover-foreground:   #FAFAFA;
+  --primary:              #22C55E;
+  --primary-foreground:   #FFFFFF;
+  --secondary:            #1E1E2E;
+  --secondary-foreground: #FAFAFA;
+  --muted:                #1E1E2E;
+  --muted-foreground:     #71717A;
+  --accent:               #1E1B4B;
+  --accent-foreground:    #A5B4FC;
+  --destructive:          #EF4444;
+  --border:               #1E1E2E;
+  --input:                #1E1E2E;
+  --ring:                 #22C55E;
 
-.theme-light {
-  --bg-base:     #F2F3F8;
-  --bg-surface:  #FFFFFF;
-  --bg-elevated: #ECEEF5;
-  --bg-overlay:  #E4E7F0;
+  /* Charts */
+  --chart-1: #22C55E;
+  --chart-2: #818CF8;
+  --chart-3: #F0A500;
+  --chart-4: #F87171;
+  --chart-5: #A78BFA;
 
-  --border:        #DDE0EE;
-  --border-subtle: #E8EBF4;
+  /* Sidebar */
+  --sidebar:                      #0D0D14;
+  --sidebar-foreground:           #FAFAFA;
+  --sidebar-primary:              #22C55E;
+  --sidebar-primary-foreground:   #FFFFFF;
+  --sidebar-accent:               #1E1E2E;
+  --sidebar-accent-foreground:    #FAFAFA;
+  --sidebar-border:               #1E1E2E;
+  --sidebar-ring:                 #22C55E;
 
-  --text-primary:   #0D0E1A;
-  --text-secondary: #525A78;
-  --text-muted:     #9099B8;
-
-  --green-dim: rgba(22, 199, 132, 0.08);
-  --red-dim:   rgba(239, 68, 68, 0.08);
-  --blue-dim:  rgba(91, 127, 255, 0.10);
-  --amber-dim: rgba(240, 165, 0, 0.08);
+  /* ── Chauchero semantic colors ── */
+  --ch-green:     #22C55E;
+  --ch-green-dim: rgba(34, 197, 94, 0.12);
+  --ch-red:       #EF4444;
+  --ch-red-dim:   rgba(239, 68, 68, 0.12);
+  --ch-blue:      #818CF8;
+  --ch-blue-dim:  rgba(129, 140, 248, 0.12);
+  --ch-amber:     #F0A500;
+  --ch-amber-dim: rgba(240, 165, 0, 0.12);
 }
 
-/* ─── Tailwind v4 — expose tokens as utilities ────────────────────────────── */
+/* ─── Tailwind v4 — expose tokens as utilities ──────────────────────────── */
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-bg-base:     var(--bg-base);
-  --color-bg-surface:  var(--bg-surface);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-bg-overlay:  var(--bg-overlay);
+  /* shadcn tokens */
+  --color-background:           var(--background);
+  --color-foreground:           var(--foreground);
+  --color-card:                 var(--card);
+  --color-card-foreground:      var(--card-foreground);
+  --color-popover:              var(--popover);
+  --color-popover-foreground:   var(--popover-foreground);
+  --color-primary:              var(--primary);
+  --color-primary-foreground:   var(--primary-foreground);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
+  --color-accent:               var(--accent);
+  --color-accent-foreground:    var(--accent-foreground);
+  --color-destructive:          var(--destructive);
+  --color-border:               var(--border);
+  --color-input:                var(--input);
+  --color-ring:                 var(--ring);
 
-  --color-border:        var(--border);
-  --color-border-subtle: var(--border-subtle);
+  /* Chart colors */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
-  --color-text-primary:   var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-  --color-text-muted:     var(--text-muted);
+  /* Sidebar */
+  --color-sidebar:                      var(--sidebar);
+  --color-sidebar-foreground:           var(--sidebar-foreground);
+  --color-sidebar-primary:              var(--sidebar-primary);
+  --color-sidebar-primary-foreground:   var(--sidebar-primary-foreground);
+  --color-sidebar-accent:               var(--sidebar-accent);
+  --color-sidebar-accent-foreground:    var(--sidebar-accent-foreground);
+  --color-sidebar-border:               var(--sidebar-border);
+  --color-sidebar-ring:                 var(--sidebar-ring);
 
-  --color-ch-green: var(--green);
-  --color-ch-red:   var(--red);
-  --color-ch-blue:  var(--blue);
-  --color-ch-amber: var(--amber);
+  /* Chauchero colors as utilities: bg-ch-green, text-ch-red, etc. */
+  --color-ch-green:     var(--ch-green);
+  --color-ch-green-dim: var(--ch-green-dim);
+  --color-ch-red:       var(--ch-red);
+  --color-ch-red-dim:   var(--ch-red-dim);
+  --color-ch-blue:      var(--ch-blue);
+  --color-ch-blue-dim:  var(--ch-blue-dim);
+  --color-ch-amber:     var(--ch-amber);
+  --color-ch-amber-dim: var(--ch-amber-dim);
 
-  --color-green-dim: var(--green-dim);
-  --color-red-dim:   var(--red-dim);
-  --color-blue-dim:  var(--blue-dim);
-  --color-amber-dim: var(--amber-dim);
-
-  --radius-sm: var(--radius-sm);
-  --radius:    var(--radius);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
+  /* Radius */
+  --radius-sm:  calc(var(--radius) - 4px);
+  --radius-md:  calc(var(--radius) - 2px);
+  --radius-lg:  var(--radius);
+  --radius-xl:  calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
 }
 
-/* ─── Base Styles ─────────────────────────────────────────────────────────── */
+/* ─── Base Layer ─────────────────────────────────────────────────────────── */
 
-* {
-  box-sizing: border-box;
-  border-color: var(--border);
-}
-
-html {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-}
-
-body {
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background-color: var(--bg-base);
-  color: var(--text-primary);
-  min-height: 100dvh;
-  transition:
-    background-color 250ms ease,
-    color 250ms ease;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100dvh;
+  }
+  html {
+    @apply font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 }
 
 /* Numbers always use mono */
@@ -133,7 +196,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -141,32 +204,19 @@ body {
   background: var(--border);
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
 
-/* ─── Focus Ring ──────────────────────────────────────────────────────────── */
-
-:focus-visible {
-  outline: 2px solid var(--blue);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
-/* ─── Selection ───────────────────────────────────────────────────────────── */
+/* ─── Selection ──────────────────────────────────────────────────────────── */
 
 ::selection {
-  background: rgba(91, 127, 255, 0.25);
-  color: var(--text-primary);
+  background: rgba(99, 102, 241, 0.25);
+  color: var(--foreground);
 }
 
-/* ─── Animations ──────────────────────────────────────────────────────────── */
+/* ─── Animations ─────────────────────────────────────────────────────────── */
 
 @keyframes spin {
   to { transform: rotate(360deg); }
-}
-
-@keyframes pulse-ring {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50%       { opacity: 1;   transform: scale(1.05); }
 }
 
 @keyframes fade-in {
@@ -179,35 +229,28 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
 .animate-spin-slow { animation: spin 1.2s linear infinite; }
 .animate-fade-in   { animation: fade-in 200ms ease forwards; }
 .animate-slide-in  { animation: slide-in-left 200ms ease forwards; }
 
-/* ─── Sidebar transition ──────────────────────────────────────────────────── */
+/* ─── Sidebar transition ─────────────────────────────────────────────────── */
 
 .sidebar-transition {
   transition: width 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ─── Glass Effect ────────────────────────────────────────────────────────── */
+/* ─── Glass Effect ───────────────────────────────────────────────────────── */
 
 .glass {
-  background-color: color-mix(in srgb, var(--bg-base) 85%, transparent);
+  background-color: color-mix(in srgb, var(--background) 85%, transparent);
   backdrop-filter: blur(12px) saturate(1.2);
   -webkit-backdrop-filter: blur(12px) saturate(1.2);
 }
 
-/* ─── Noise Texture Overlay ───────────────────────────────────────────────── */
-
-.noise::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-/* ─── Mobile safe area ────────────────────────────────────────────────────── */
+/* ─── Mobile safe area ───────────────────────────────────────────────────── */
 
 .pb-safe { padding-bottom: env(safe-area-inset-bottom, 16px); }

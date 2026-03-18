@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCLP, formatDate, formatCardNumber } from "@/lib/format";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import TransactionDrawer, {
   type Transaction,
 } from "@/components/ui/TransactionDrawer";
@@ -35,18 +38,18 @@ const TABS: { id: FilterTab; label: string }[] = [
 
 function rowStyle(type: ApiTransaction["transaction_type"]) {
   if (type === "transfer_credit")
-    return { Icon: ArrowDownLeft, bg: "bg-[var(--green-dim)]", fg: "text-[var(--green)]" };
+    return { Icon: ArrowDownLeft, bg: "bg-ch-green-dim", fg: "text-ch-green" };
   if (type === "transfer_debit")
-    return { Icon: ArrowUpRight, bg: "bg-[var(--red-dim)]", fg: "text-[var(--red)]" };
-  return { Icon: CreditCard, bg: "bg-[var(--blue-dim)]", fg: "text-[var(--blue)]" };
+    return { Icon: ArrowUpRight, bg: "bg-ch-red-dim", fg: "text-ch-red" };
+  return { Icon: CreditCard, bg: "bg-ch-blue-dim", fg: "text-ch-blue" };
 }
 
 function typeBadge(type: ApiTransaction["transaction_type"]) {
   if (type === "transfer_credit")
-    return { label: "Ingreso",       bg: "bg-[var(--green-dim)]", fg: "text-[var(--green)]" };
+    return { label: "Ingreso",       cls: "bg-ch-green-dim text-ch-green" };
   if (type === "transfer_debit")
-    return { label: "Transferencia", bg: "bg-[var(--red-dim)]",   fg: "text-[var(--red)]" };
-  return   { label: "Gasto",        bg: "bg-[var(--blue-dim)]",  fg: "text-[var(--blue)]" };
+    return { label: "Transferencia", cls: "bg-ch-red-dim text-ch-red" };
+  return   { label: "Gasto",        cls: "bg-ch-blue-dim text-ch-blue" };
 }
 
 function toDrawerTx(tx: ApiTransaction): Transaction {
@@ -122,7 +125,6 @@ export default function TransactionsList({
 
   const handleSaveNote = useCallback((id: string, note: string) => {
     setNotes((prev) => ({ ...prev, [id]: note }));
-    // TODO: PATCH /transactions/{id} to persist
   }, []);
 
   // ── Empty state ─────────────────────────────────────────────────────────────
@@ -131,21 +133,21 @@ export default function TransactionsList({
     return (
       <div className="space-y-5">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Transacciones</h1>
-          <p className="text-sm text-[var(--text-muted)] mt-0.5">Sin transacciones aún</p>
+          <h1 className="text-2xl font-bold text-foreground">Transacciones</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Sin transacciones aún</p>
         </div>
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] flex flex-col items-center justify-center py-20 gap-4">
-          <div className="size-14 rounded-full bg-[var(--bg-elevated)] flex items-center justify-center">
-            <RefreshCw className="size-6 text-[var(--text-muted)]" />
+        <Card className="flex flex-col items-center justify-center py-20 gap-4">
+          <div className="size-14 rounded-full bg-muted flex items-center justify-center">
+            <RefreshCw className="size-6 text-muted-foreground" />
           </div>
           <div className="text-center">
-            <p className="text-sm font-medium text-[var(--text-primary)]">Sin transacciones</p>
-            <p className="text-[13px] text-[var(--text-muted)] mt-1">
+            <p className="text-sm font-medium text-foreground">Sin transacciones</p>
+            <p className="text-[13px] text-muted-foreground mt-1">
               Pulsa el botón <strong>Sincronizar</strong> en la barra superior<br />
               para analizar tus correos de Banco de Chile.
             </p>
           </div>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -158,35 +160,35 @@ export default function TransactionsList({
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Transacciones</h1>
-            <p className="text-sm text-[var(--text-muted)] mt-0.5">
+            <h1 className="text-2xl font-bold text-foreground">Transacciones</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
               {transactions.length} transacciones · Banco de Chile
             </p>
           </div>
-          <span className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full bg-[var(--green-dim)] text-[var(--green)] mt-1">
+          <Badge variant="secondary" className="bg-ch-green-dim text-ch-green mt-1">
             Parser activo
-          </span>
+          </Badge>
         </div>
 
         {/* Filter tabs */}
-        <div className="flex gap-1 bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] p-1 w-fit">
+        <div className="flex gap-1 bg-card border border-border rounded-lg p-1 w-fit">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => handleTabChange(t.id)}
               className={cn(
-                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-[var(--radius)] text-[12px] font-medium transition-colors duration-150",
+                "flex items-center gap-1.5 px-3.5 py-1.5 rounded-md text-[12px] font-medium transition-colors duration-150 cursor-pointer",
                 tab === t.id
-                  ? "bg-[var(--bg-elevated)] text-[var(--text-primary)] shadow-sm"
-                  : "text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                  ? "bg-secondary text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {t.label}
               <span className={cn(
                 "text-[10px] font-semibold px-1.5 py-0.5 rounded-full tabular-nums",
                 tab === t.id
-                  ? "bg-[var(--blue)] text-white"
-                  : "bg-[var(--bg-overlay)] text-[var(--text-muted)]"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
               )}>
                 {counts[t.id]}
               </span>
@@ -195,11 +197,11 @@ export default function TransactionsList({
         </div>
 
         {/* Table */}
-        <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-[var(--radius-xl)] overflow-hidden">
+        <Card className="overflow-hidden">
           {/* Column headers */}
-          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-[var(--border)] bg-[var(--bg-elevated)]">
+          <div className="grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 px-5 py-3 border-b border-border bg-muted/50">
             {["Descripción", "Tipo", "Fecha", "Tarjeta", "Monto"].map((h) => (
-              <span key={h} className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+              <span key={h} className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {h}
               </span>
             ))}
@@ -207,11 +209,11 @@ export default function TransactionsList({
 
           {/* Rows */}
           {pageItems.length === 0 ? (
-            <div className="px-5 py-12 text-center text-sm text-[var(--text-muted)]">
+            <div className="px-5 py-12 text-center text-sm text-muted-foreground">
               Sin transacciones en esta categoría.
             </div>
           ) : (
-            <div className="divide-y divide-[var(--border-subtle)]">
+            <div className="divide-y divide-border">
               {pageItems.map((tx) => {
                 const { Icon, bg, fg } = rowStyle(tx.transaction_type);
                 const badge = typeBadge(tx.transaction_type);
@@ -220,44 +222,39 @@ export default function TransactionsList({
                   <button
                     key={tx.id}
                     onClick={() => setSelected(tx)}
-                    className="w-full text-left grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-4 hover:bg-[var(--bg-elevated)] transition-colors duration-150"
+                    className="w-full text-left grid grid-cols-[2fr_1fr_1fr_1fr_auto] gap-4 items-center px-5 py-4 hover:bg-muted/50 transition-colors duration-150 cursor-pointer"
                   >
-                    {/* Description */}
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={cn("size-9 rounded-full flex items-center justify-center shrink-0", bg)}>
                         <Icon className={cn("size-4", fg)} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">
+                        <p className="text-[13px] font-medium text-foreground truncate">
                           {tx.description}
                         </p>
-                        <p className="text-[11px] text-[var(--text-muted)] truncate">
+                        <p className="text-[11px] text-muted-foreground truncate">
                           {tx.email_subject ?? tx.transaction_type}
                         </p>
                       </div>
                     </div>
 
-                    {/* Type */}
                     <div>
-                      <span className={cn("inline-block text-[11px] font-medium px-2.5 py-1 rounded-full", badge.bg, badge.fg)}>
+                      <Badge variant="secondary" className={cn("text-[11px] font-medium", badge.cls)}>
                         {badge.label}
-                      </span>
+                      </Badge>
                     </div>
 
-                    {/* Date */}
-                    <span className="text-[12px] text-[var(--text-muted)]">
+                    <span className="text-[12px] text-muted-foreground">
                       {formatDate(tx.transaction_date)}
                     </span>
 
-                    {/* Card */}
-                    <span className="text-[12px] font-mono text-[var(--text-muted)]">
+                    <span className="text-[12px] font-mono text-muted-foreground">
                       —
                     </span>
 
-                    {/* Amount */}
                     <span className={cn(
                       "text-[13px] font-semibold font-mono tabular-nums",
-                      isIncome ? "text-[var(--green)]" : "text-[var(--red)]"
+                      isIncome ? "text-ch-green" : "text-ch-red"
                     )}>
                       {isIncome ? "+" : "−"} {formatCLP(tx.amount)}
                     </span>
@@ -268,66 +265,56 @@ export default function TransactionsList({
           )}
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-t border-[var(--border)] bg-[var(--bg-elevated)]">
-            <span className="text-[12px] text-[var(--text-muted)]">
+          <div className="flex items-center justify-between px-5 py-3.5 border-t border-border bg-muted/50">
+            <span className="text-[12px] text-muted-foreground">
               {filtered.length === 0
                 ? "0 resultados"
                 : `${(safePage - 1) * PAGE_SIZE + 1}–${Math.min(safePage * PAGE_SIZE, filtered.length)} de ${filtered.length}`}
             </span>
 
             <div className="flex items-center gap-1">
-              <button
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={safePage === 1}
-                className={cn(
-                  "size-8 flex items-center justify-center rounded-[var(--radius)] border border-[var(--border)] transition-colors",
-                  safePage === 1
-                    ? "opacity-30 cursor-not-allowed text-[var(--text-muted)]"
-                    : "hover:bg-[var(--bg-base)] text-[var(--text-secondary)]"
-                )}
               >
                 <ChevronLeft className="size-3.5" />
-              </button>
+              </Button>
 
               {pageNumbers(safePage, totalPages).map((n, i) =>
                 n === "…" ? (
-                  <span key={`ellipsis-${i}`} className="size-8 flex items-center justify-center text-[12px] text-[var(--text-muted)]">
+                  <span key={`ellipsis-${i}`} className="size-8 flex items-center justify-center text-[12px] text-muted-foreground">
                     …
                   </span>
                 ) : (
-                  <button
+                  <Button
                     key={n}
+                    variant={n === safePage ? "default" : "outline"}
+                    size="icon"
+                    className="size-8 text-[12px]"
                     onClick={() => setPage(n)}
-                    className={cn(
-                      "size-8 flex items-center justify-center rounded-[var(--radius)] text-[12px] font-medium transition-colors border",
-                      n === safePage
-                        ? "bg-[var(--blue)] text-white border-[var(--blue)]"
-                        : "border-[var(--border)] text-[var(--text-muted)] hover:bg-[var(--bg-base)] hover:text-[var(--text-primary)]"
-                    )}
                   >
                     {n}
-                  </button>
+                  </Button>
                 )
               )}
 
-              <button
+              <Button
+                variant="outline"
+                size="icon"
+                className="size-8"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={safePage === totalPages}
-                className={cn(
-                  "size-8 flex items-center justify-center rounded-[var(--radius)] border border-[var(--border)] transition-colors",
-                  safePage === totalPages
-                    ? "opacity-30 cursor-not-allowed text-[var(--text-muted)]"
-                    : "hover:bg-[var(--bg-base)] text-[var(--text-secondary)]"
-                )}
               >
                 <ChevronRight className="size-3.5" />
-              </button>
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* Drawer */}
       <TransactionDrawer
         transaction={selected ? toDrawerTx(selected) : null}
         note={selected ? (notes[selected.id] ?? "") : ""}
