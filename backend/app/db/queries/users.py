@@ -66,13 +66,14 @@ def acquire_sync_lock(db: Session, user: User) -> bool:
     stale_threshold = now - timedelta(minutes=10)
 
     # Atomically acquire the lock.
-    # Succeeds when:  not locked  OR  lock is stale (> 10 min old)
+    # Succeeds when:  not locked  OR  lock is stale (> 10 min old)  OR  sync_started_at is NULL
     result = db.execute(
         text(
             "UPDATE users "
             "SET is_syncing = true, sync_started_at = :now "
             "WHERE id = :id "
             "  AND (is_syncing = false "
+            "       OR sync_started_at IS NULL "
             "       OR sync_started_at < :stale) "
             "RETURNING id"
         ),

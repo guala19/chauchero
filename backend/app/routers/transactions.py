@@ -5,6 +5,7 @@ from uuid import UUID
 from ..core.database import get_db
 from ..services.transaction_service import TransactionService, SyncCooldownError, SyncInProgressError
 from ..services.gmail_service import GmailAuthError
+from ..db.queries.users import release_sync_lock
 from ..schemas import (
     TransactionResponse,
     TransactionUpdate,
@@ -23,10 +24,26 @@ router = APIRouter(prefix="/transactions", tags=["transactions"])
 # endpoints in a thread pool, keeping the event loop free for other requests.
 
 
-@router.post("/sync", response_model=SyncResponse)
+@router.post(
+    "/sync",
+    response_model=SyncResponse,
+    summary="Sincronizar transacciones desde Gmail",
+    description=(
+        "Busca emails bancarios en Gmail del usuario, los parsea y guarda las transacciones nuevas en DB. "
+        "Por defecto es incremental (solo emails desde el último sync). "
+        "Usar `force_full_sync=true` para reprocesar todos los emails históricos. "
+        "Tiene cooldown de 5 minutos por usuario para evitar abusos."
+    ),
+    responses={
+        401: {"description": "Token JWT inválido o token de Gmail expirado/revocado — requiere re-login"},
+        409: {"description": "Ya hay un sync en progreso para este usuario"},
+        429: {"description": "Sync muy reciente — esperar el cooldown (default: 5 minutos)"},
+        500: {"description": "Error interno durante el sync"},
+    },
+)
 def sync_transactions(
-    max_emails: int = Query(500, ge=1, le=2000),
-    force_full_sync: bool = Query(False),
+    max_emails: int = Query(500, ge=1, le=2000, description="Máximo de emails a procesar"),
+    force_full_sync: bool = Query(False, description="Si true, ignora last_sync_at y reprocesa todo"),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -59,14 +76,40 @@ def sync_transactions(
         raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
 
 
-@router.get("/debug/gmail-query", response_model=DebugGmailQueryResponse)
+@router.get(
+    "/debug/gmail-query",
+    response_model=DebugGmailQueryResponse,
+    summary="[Debug] Ver query de Gmail que se usaría en el sync",
+    description=(
+        "Retorna la query de Gmail que se ejecutaría en el próximo sync, "
+        "tanto incremental (desde last_sync_at) como full resync. "
+        "Útil para diagnosticar por qué no se están encontrando emails."
+    ),
+    responses={
+        401: {"description": "Token JWT inválido o expirado"},
+    },
+)
 def debug_gmail_query(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
     return TransactionService(db).debug_gmail_query(current_user)
 
 
-@router.get("/debug/gmail-scan", response_model=DebugGmailScanResponse)
+@router.get(
+    "/debug/gmail-scan",
+    response_model=DebugGmailScanResponse,
+    summary="[Debug] Escanear emails sin guardar transacciones",
+    description=(
+        "Busca emails en Gmail y muestra qué parser se usaría y qué datos extraería, "
+        "sin guardar nada en DB. "
+        "Útil para validar que el parser funciona correctamente con emails reales."
+    ),
+    responses={
+        400: {"description": "No hay token de Gmail — re-autenticarse"},
+        401: {"description": "Token JWT inválido o expirado"},
+        500: {"description": "Error al escanear Gmail"},
+    },
+)
 def debug_gmail_scan(
-    max_emails: int = Query(500, ge=1, le=2000),
+    max_emails: int = Query(500, ge=1, le=2000, description="Máximo de emails a escanear"),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -78,11 +121,22 @@ def debug_gmail_scan(
         raise HTTPException(status_code=500, detail=f"Gmail scan failed: {str(e)}")
 
 
-@router.get("/", response_model=List[TransactionResponse])
+@router.get(
+    "/",
+    response_model=List[TransactionResponse],
+    summary="Listar transacciones",
+    description=(
+        "Retorna las transacciones del usuario autenticado, ordenadas por fecha descendente. "
+        "Soporta filtro por cuenta bancaria y paginación."
+    ),
+    responses={
+        401: {"description": "Token JWT inválido o expirado"},
+    },
+)
 def list_transactions(
-    account_id: Optional[UUID] = None,
-    limit: int = Query(500, ge=1, le=2000),
-    offset: int = Query(0, ge=0),
+    account_id: Optional[UUID] = Query(None, description="Filtrar por ID de cuenta bancaria"),
+    limit: int = Query(500, ge=1, le=2000, description="Número de resultados a retornar"),
+    offset: int = Query(0, ge=0, description="Número de resultados a saltar (para paginación)"),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -95,7 +149,20 @@ def list_transactions(
     return [TransactionResponse.model_validate(t) for t in transactions]
 
 
-@router.patch("/{transaction_id}", response_model=TransactionResponse)
+@router.patch(
+    "/{transaction_id}",
+    response_model=TransactionResponse,
+    summary="Actualizar transacción",
+    description=(
+        "Actualiza campos de una transacción existente. "
+        "Solo se modifican los campos enviados (PATCH semántico). "
+        "Útil para corregir categorías o agregar notas manualmente."
+    ),
+    responses={
+        401: {"description": "Token JWT inválido o expirado"},
+        404: {"description": "Transacción no encontrada o no pertenece al usuario"},
+    },
+)
 def update_transaction(
     transaction_id: UUID,
     update_data: TransactionUpdate,
@@ -110,3 +177,16 @@ def update_transaction(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     return TransactionResponse.model_validate(transaction)
+
+
+@router.post(
+    "/sync/force-unlock",
+    summary="Liberar sync lock trabado",
+    description="Libera el lock de sincronización si quedó trabado por un crash del servidor.",
+)
+def force_unlock_sync(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    release_sync_lock(db, current_user)
+    return {"status": "unlocked"}
