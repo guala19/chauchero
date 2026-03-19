@@ -1,0 +1,1078 @@
+Delivered-To: test.user@gmail.com
+Received: by 2002:a05:6020:9883:b0:741:3161:7941 with SMTP id nt3csp4683569wdb;
+        Thu, 4 Dec 2025 13:56:25 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IF8Ro8ALbqxwdhPa+xbIOSyXoG9FcB5BRjQU4oCFTitV0hON7tMyN4syb8k4xE9HHWXrcyG
+X-Received: by 2002:a05:6122:2227:b0:55b:9c3f:55f with SMTP id 71dfb90a1353d-55e5c03e120mr3028992e0c.18.1764885385351;
+        Thu, 04 Dec 2025 13:56:25 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1764885385; cv=none;
+        d=google.com; s=arc-20240605;
+        b=C5DzKuXTf3ynq0JMKMcmGML2brPuxbIt1dW/ytzhxu/ycZvrL5wTSafjOyORcYzoYp
+         U2iQntyRcEo3TyHaYjtpvdWsJ09SrsWuvrdAOSPrjzQDW+x5NP+R+c7M22NnhKcf22nL
+         lFphVzJlzIgio6X3dVor3RQCqBQPRB+jS+uSeTXO3oE6vvDobu80uAu2twfjEwCbDjjY
+         3WpNmBEjxuftLPouer6Ttq6k8yxgr3zrPqQTE6v/OKG76+nKrRXYwA/8TaxLVFd1gl8K
+         oN8MZsFvFUZgXSyHmPmE2Ds41QMg+XuroSugEJh0aVOTQ6TQVT4JN1SXafHbG2BVqOUO
+         UCXw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=content-transfer-encoding:mime-version:subject:message-id:to:from
+         :date:dkim-signature;
+        bh=plC/ZWgDvDr6K+GUfJigSg5bPixkP0J+mBNlIYi+2OI=;
+        fh=UIiw5jyEXc6LX81o4o/WsOi43loMhcpF9buAv5Jsm70=;
+        b=AOUSaR8rxWdrascGobEAJyq9iXsvuJBop2Kwrc2VNcnMkr16BwFXdSpGJfgDDbtvPF
+         UKqMSHgK5VblOn16KM3VZqRSjGZE2wrC7q5DWeyOjHOpawmQLMKMxAdW1R+fyC1dRHhW
+         ptf8GSEHdJkvu/UUUsl0QkWdOc+0eV9nNuFMNlg39gKv1FTN5uiQl6WnR0+nnbmCOtNO
+         41nXOj7s7FOAwAhH5GQQM5QrRvPkQcpB0R8I2vkQnCSEXQRFbnMRYLSTxDy/Qa1jes0B
+         rsfwQXjpltu0LCi1Vi9Hjoc6rZw+kgh/GxocEm+z7FesMyrOVd1lYREQWrR8ZxP8VcX/
+         M9Dw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@bancochile.cl header.s=BCH04072019LGVL header.b=I0rGa9s3;
+       spf=pass (google.com: domain of prvs=6433311f04=serviciodetransferencias@bancochile.cl designates 200.14.130.100 as permitted sender) smtp.mailfrom="prvs=6433311f04=serviciodetransferencias@bancochile.cl";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=bancochile.cl
+Return-Path: <prvs=6433311f04=serviciodetransferencias@bancochile.cl>
+Received: from bchag3pplgvl.bancochile.cl (ag3pplgvl.bancochile.cl. [200.14.130.100])
+        by mx.google.com with ESMTPS id 71dfb90a1353d-55e6c5a40e7si855072e0c.47.2025.12.04.13.56.24
+        for <test.user@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 04 Dec 2025 13:56:25 -0800 (PST)
+Received-SPF: pass (google.com: domain of prvs=6433311f04=serviciodetransferencias@bancochile.cl designates 200.14.130.100 as permitted sender) client-ip=200.14.130.100;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@bancochile.cl header.s=BCH04072019LGVL header.b=I0rGa9s3;
+       spf=pass (google.com: domain of prvs=6433311f04=serviciodetransferencias@bancochile.cl designates 200.14.130.100 as permitted sender) smtp.mailfrom="prvs=6433311f04=serviciodetransferencias@bancochile.cl";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=bancochile.cl
+Received: from pps.filterd (bchag3pplgvl.bancochile.cl [127.0.0.1])
+	by bchag3pplgvl.bancochile.cl (8.18.1.2/8.18.1.2) with ESMTP id 5B4Ln1hs019028
+	for <test.user@gmail.com>; Thu, 4 Dec 2025 18:56:19 -0300
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=bancochile.cl;
+ h=content-transfer-encoding : content-type : date : from : message-id :
+ mime-version : subject : to; s=BCH04072019LGVL;
+ bh=plC/ZWgDvDr6K+GUfJigSg5bPixkP0J+mBNlIYi+2OI=;
+ b=I0rGa9s3Y5s2JIUKHkprZw5R5p2eY9Tr0jXszDCub5Y8Vb4YBTcYOPH0ZY0MxRS942mj
+ s6Al9600Q4GDSR/QtCeNZ63Dqb3UBH2toIReZdCXycJW/urT3avGfMJkh+9IoTVhSB2x
+ SZloQ1w5bR12Skm4kRg3MXnVATdM+bSdmg52jgJEFuK80nEJ1+EbNqMh3wKKULdwSoHH
+ 6pHPsclxH4XKccbvZx6qL5fisazk9Cln671xw2jc8Lp6DOVO3X6tkfOgntyNsQLAG0Ha
+ fO1BAwqYV9xuZPJ0u71MrjSF9OwTJrJqNk9kBuDfr3B+81xBvyn42Ml7nIgGw7yegyKZ gg== 
+Received: from el08cn06.bch.bancodechile.cl ([10.20.31.112])
+	by bchag3pplgvl.bancochile.cl (PPS) with ESMTP id 4asrm7403h-7020
+	for <test.user@gmail.com>; Thu, 04 Dec 2025 18:56:19 -0300
+Date: Thu, 4 Dec 2025 18:56:23 -0300 (CLST)
+From: serviciodetransferencias@bancochile.cl
+To: test.user@gmail.com
+Message-ID: <2136640453.233155.1764885383554@el08cn06.bch.bancodechile.cl>
+Subject: Comprobante de Pago
+MIME-Version: 1.0
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<?xml version=3D"1.0"encoding=3D"UTF-8"?>
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/x=
+html1/DTD/xhtml1-transitional.dtd">
+<html lang=3D"es" xmlns=3D"http://www.w3.org/1999/xhtml" style=3D"margin: 0=
+; padding: 0; background-color: #eeeeee;">
+
+<head>
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=
+=3D1">
+    <meta http-equiv=3D"Content-Type" content=3D"text/html; charset=3DUTF-8=
+" />
+    <title>Banco de Chile | Mi Banco</title>
+    <link rel=3D"preconnect" href=3D"https://fonts.googleapis.com">
+    <link rel=3D"preconnect" href=3D"https://fonts.gstatic.com" crossorigin=
+>
+    <link href=3D"https://fonts.googleapis.com/css2?family=3DNunito+Sans:wg=
+ht@400;700&display=3Dswap" rel=3D"stylesheet">
+    <style type=3D"text/css">
+        img {
+            border: 0;
+            height: auto;
+            line-height: 100%;
+            outline: none;
+            text-decoration: none;
+            -ms-interpolation-mode: bicubic;
+        }
+
+        body {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+        }
+
+        body,
+        table,
+        td,
+        a {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+
+      =20
+        table,
+        td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+
+        #backgroundTable {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+        }
+
+        .ExternalClass {
+            width: 100%;
+        }
+
+        a,
+        a:link,
+        a:visited {
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .ExternalClass,
+        .ExternalClass p,
+        .ExternalClass span,
+        .ExternalClass font,
+        .ExternalClass td,
+        .ExternalClass div {
+            line-height: 100%;
+        }
+
+        #outlook a {
+            padding: 0;
+        }
+
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        div[style*=3D"margin: 16px 0;"] {
+            margin: 0 !important;
+        }
+        a.disable-link {
+            pointer-events: none !important;
+            cursor: text !important;
+            text-decoration: none !important;
+        }
+
+        a.disable-link:hover {
+            text-decoration: none !important;
+        }
+
+        .wrapper table {
+            width: 100% !important;
+        }
+    </style>
+</head>
+<body
+    style=3D"font-family: 'Nunito Sans', sans-serif, serif, EmojiFont, wf_s=
+egoe-ui_normal, Segoe UI, Segoe WP, Tahoma, Arial; -webkit-font-smoothing: =
+antialiased !important; -moz-osx-font-smoothing: grayscale!important; -webk=
+it-text-size-adjust: 100% !important; -ms-text-size-adjust:100% !important;=
+ width: 100% !important; height: 100% !important; margin: 0; padding: 0; fo=
+nt-weight: normal; font-size: 16px; mso-line-height-rule:exactly; color: #5=
+2677B">
+    <table role=3D"presentation" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" height=3D"100%" width=3D"100%"
+        id=3D"backgroundTable">
+        <tr>
+            <td>
+                <!--  Internal Header  -->
+<table role=3D"presentation" bgcolor=3D"#ffffff" cellpadding=3D"0" cellspac=
+ing=3D"0" border=3D"0"
+    style=3D"width: 100%; margin: 0; padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; ">
+    <tr>
+        <td style=3D"display: block !important; max-width: 520px !important=
+; margin: 0 auto 0 auto; padding: 24px 40px; mso-line-height-rule:exactly;"=
+>
+            <div role=3D"banner">
+                <table role=3D"presentation" bgcolor=3D"#FFFFFF" cellpaddin=
+g=3D"0" cellspacing=3D"0" border=3D"0"
+                    style=3D"width: 100%; margin: 0; padding: 0; border: no=
+ne;border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                    <tr>
+                        <td style=3D"margin: 0; padding: 0;"> <img src=3D"h=
+ttps://servicios.bancochile.cl/imagenes/movil/correo/mails-assets/v2/logo_b=
+ch.png"
+                                alt=3D"Logo Banco De Chile" height=3D"70px"
+                                style=3D"margin: 0; padding: 0; -ms-interpo=
+lation-mode:bicubic; height:70px; max-height:70px;" />
+                        </td>
+                        <td style=3D"margin: 0; padding: 0 0 0 16px; text-a=
+lign: right;"> <img
+                                src=3D"https://servicios.bancochile.cl/imag=
+enes/movil/correo/mails-assets/v2/mi-banco/bch_app.png" alt=3D"Icono App Mi=
+ Banco" height=3D"70px"
+                                style=3D"margin: 0; padding: 0; -ms-interpo=
+lation-mode:bicubic; height:70px; max-height:70px;" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>                <!--  Internal Body  -->
+<table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" border=3D"=
+0"
+    style=3D"width: 100%; margin: 0; padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+    <tr>
+        <td bgcolor=3D"#FFFFFF"
+            style=3D"display: block !important; max-width: 520px !important=
+; margin: 0 auto 0 auto; padding: 12px 40px 20px 40px;">
+            <table role=3D"presentation"  align=3D"center" cellpadding=3D"0=
+" cellspacing=3D"0" border=3D"0"
+                style=3D"width: 100%; margin: 0; padding: 0; border: none;b=
+order-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                <tbody>
+                    <tr>
+                        <td
+                            style=3D"color:#0A1861; margin: 0 0 10px 0; pad=
+ding: 0 0 16px 0; font-weight: normal; line-height: 32px; font-size: 26px; =
+mso-line-height-rule:exactly;">
+                            Comprobante de pago exitoso</td>
+                    </tr>
+                    <tr>
+                        <td
+                            style=3D"color: #2A333D; margin: 0 0 10px 0; pa=
+dding: 0 0 16px 0; font-weight: normal; line-height: 24px; mso-line-height-=
+rule:exactly;">
+                            Estimado(a): <b>Juan Carlos Pérez López</b>=
+ <br>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td
+                            style=3D"color: #2A333D; margin: 0 0 24px 0; pa=
+dding: 0; line-height: 24px; mso-line-height-rule:exactly;">
+
+                            Adjuntamos comprobante de pago de las cuenta(s)=
+ pagada(s) a trav&eacute;s de la
+                    =09=09App Mi Banco:
+                        </td>
+                    </tr>
+
+                    <!-- INICIO - Espaciador -->
+                    <tr>
+                        <td height=3D"24" style=3D"font-size: 0px; line-hei=
+ght: 0px; min-height: 24px;" class=3D"">&nbsp;</td>
+                    </tr>
+                    <!-- FIN- Espaciado -->
+                   =20
+                </tbody>
+            </table>
+
+            <!-- START - CARD BORDER -->
+
+            <table role=3D"presentation"  align=3D"center" border=3D"0" cel=
+lpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#FFFFF"
+                style=3D"padding: 0; margin: 0 0 16px 0; width:100%; border=
+-radius:16px;  border-color: #DDE5FF; border-right-color: #DDE5FF; border-b=
+ottom-color: #DDE5FF; border-left-color: #DDE5FF; border-top-style: solid; =
+border-right-style: solid; border-bottom-style: solid; border-left-style: s=
+olid; border-top-width: 1px; border-right-width: 1px; border-bottom-width: =
+1px; border-left-width: 1px; overflow: hidden;">
+                <tbody>
+                    <tr>
+                        <td style=3D"border-collapse:collapse; padding: 1px=
+; border:none">
+                            <table role=3D"presentation"  align=3D"center" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#ffffff"
+                                style=3D"width:100%; border-radius: 0; bord=
+er-collapse:collapse;">
+                                <tbody>
+                                    <tr>
+                                        <td style=3D"border-collapse:collap=
+se; padding: 16px; border:none">
+                                            <table cellpadding=3D"0" cellsp=
+acing=3D"0" border=3D"0" width=3D"100%"
+                                                style=3D"font-size: 14px; w=
+idth: 100%; padding: 0; margin: 0; line-height: 24px; mso-line-height-rule:=
+exactly;"
+                                                bgcolor=3D"#ffffff">
+                                                <tr>
+                                                    <td
+                                                        style=3D"vertical-a=
+lign: top; margin: 0; padding: 4px 0; color: #000000; font-weight: bold;">
+                                                        Detalle cuenta(s) p=
+agada(s)                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td
+                                                        style=3D"vertical-a=
+lign: top; margin: 0; padding: 4px 0; color: #52677B; font-weight: regular;=
+">
+                                                        Comercio
+                                                    </td>
+                                                    <td
+                                                        style=3D"vertical-a=
+lign: top; max-width: 180px; margin: 0; padding: 4px 0; text-align: right; =
+color: #2A333D">
+                                                        PASAJEBUS
+
+
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td
+                                                        style=3D"vertical-a=
+lign: top; margin: 0; padding: 4px 0; color: #52677B; font-weight: regular;=
+">
+                                                        Monto
+                                                    </td>
+                                                    <td
+                                                        style=3D"vertical-a=
+lign: top; max-width: 180px; margin: 0; padding: 4px 0; text-align: right; =
+color: #2A333D">
+                                                        $ 2.300
+                                                    </td>
+                                                </tr>=20
+                                                <tr>
+                                                    <td
+                                                        style=3D"padding: 6=
+px 0">
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+            <table role=3D"presentation"  align=3D"center" border=3D"0" cel=
+lpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#FFFFF"
+                style=3D"padding: 0; margin: 0 0 16px 0; width:100%; border=
+-radius:16px;  border-color: #DDE5FF; border-right-color: #DDE5FF; border-b=
+ottom-color: #DDE5FF; border-left-color: #DDE5FF; border-top-style: solid; =
+border-right-style: solid; border-bottom-style: solid; border-left-style: s=
+olid; border-top-width: 1px; border-right-width: 1px; border-bottom-width: =
+1px; border-left-width: 1px; overflow: hidden;">
+                <tbody>
+                    <tr>
+                        <td style=3D"border-collapse:collapse; padding: 1px=
+; border:none">
+                            <table role=3D"presentation"  align=3D"center" =
+border=3D"0" cellpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#ffffff"
+                                style=3D"width:100%; border-radius: 0; bord=
+er-collapse:collapse;">
+                                <tbody>
+                                    <tr>
+                                        <td style=3D"border-collapse:collap=
+se; padding: 16px; border:none">
+                                            <table cellpadding=3D"0" cellsp=
+acing=3D"0" border=3D"0" width=3D"100%"
+                                                style=3D"font-size: 14px; w=
+idth: 100%; padding: 0; margin: 0; line-height: 24px; mso-line-height-rule:=
+exactly;"
+                                                bgcolor=3D"#ffffff">
+                                               =20
+                                                <tr>
+                                                    <p
+                                                        style=3D"font-size:=
+ 14px; margin: 0; padding: 4px 0; color: #2A333D; font-weight: bold;">
+                                                        Detalle del pago
+                                                    </p>
+
+                                                </tr>
+
+                                                <!-- Medio de pago -->
+                                                <tr>
+                                                    <td
+                                                        style=3D"max-width:=
+ 150px; vertical-align:top; white-space: normal; margin: 0; padding: 4px 0;=
+ color: #52677B; font-weight: regular;">
+                                                        Medio de pago
+                                                    </td>
+                                                    <td
+                                                        style=3D"max-width:=
+ 180px; vertical-align:top; margin: 0; padding: 4px 0; text-align: right; c=
+olor: #2A333D">
+                                                        Tarjeta de D&eacute=
+;bito ****8560
+
+                                                    </td>
+                                                </tr>
+                                                  <!-- Direcci=F3n comercio=
+ -->
+                                                <tr>
+                                                    <td
+                                                        style=3D"max-width:=
+ 150px; vertical-align:top; white-space: normal; margin: 0; padding: 4px 0;=
+ color: #52677B; font-weight: regular;">
+                                                        Direcci&oacute;n co=
+mercio
+                                                    </td>
+                                                    <td
+                                                        style=3D"max-width:=
+ 180px; vertical-align:top; margin: 0; padding: 4px 0; text-align: right; c=
+olor: #2A333D">
+                                                        Ecommerce
+
+                                                    </td>
+                                                </tr>
+                                               =20
+                                                  <!-- C=F3digo de autoriza=
+ci=F3n -->
+                                                <tr>
+                                                    <td
+                                                        style=3D"max-width:=
+ 150px; vertical-align:top; white-space: normal; margin: 0; padding: 4px 0;=
+ color: #52677B; font-weight: regular;">
+                                                        C&oacute;digo de au=
+torizaci&oacute;n
+                                                    </td>
+                                                    <td
+                                                        style=3D"max-width:=
+ 180px; vertical-align:top; margin: 0; padding: 4px 0; text-align: right; c=
+olor: #2A333D">
+                                                        145f4d2ffcd4dbd22
+
+                                                    </td>
+                                                </tr>
+                                               =20
+
+                                                                           =
+ =20
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table role=3D"presentation"  align=3D"center" border=3D"0" cel=
+lpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#FFFFF"
+            style=3D"padding: 0; margin: 0 0 16px 0; width:100%; border-rad=
+ius:16px;  border-color: #DDE5FF; border-right-color: #DDE5FF; border-botto=
+m-color: #DDE5FF; border-left-color: #DDE5FF; border-top-style: solid; bord=
+er-right-style: solid; border-bottom-style: solid; border-left-style: solid=
+; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px;=
+ border-left-width: 1px; overflow: hidden;">
+            <tbody>
+                <tr>
+                    <td style=3D"border-collapse:collapse; padding: 1px; bo=
+rder:none">
+                        <table role=3D"presentation"  align=3D"center" bord=
+er=3D"0" cellpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#ffffff"
+                            style=3D"width:100%; border-radius: 0; border-c=
+ollapse:collapse;">
+                            <tbody>
+                                <tr>
+                                    <td style=3D"border-collapse:collapse; =
+padding: 16px; border:none">
+                                        <table cellpadding=3D"0" cellspacin=
+g=3D"0" border=3D"0" width=3D"100%"
+                                            style=3D"font-size: 14px; width=
+: 100%; padding: 0; margin: 0; line-height: 24px; mso-line-height-rule:exac=
+tly;"
+                                            bgcolor=3D"#ffffff">
+                                           =20
+                                            <tr>
+                                                <td
+                                                    style=3D"vertical-align=
+:top; font-size: 14px; margin: 0; padding: 4px 0; color: #2A333D; font-weig=
+ht: bold;">
+                                                    Total=20
+                                                </td>
+
+                                                <td
+                                                    style=3D"vertical-align=
+:top; width: 100%; text-align: right; letter-spacing: 1px; font-size: 20px;=
+ margin: 0; padding: 4px 0; color: #2A333D; font-weight: bold;">
+                                                    $2.300
+                                                </td>
+
+
+
+                                            </tr>
+                                          =20
+
+                                                                        =20
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+            <!-- END - CARD BORDER -->
+
+
+            <!-- START - BLUE CARD BORDER -->
+          =20
+            <!-- END - BLUE CARD BORDER -->
+
+
+
+
+            <table role=3D"presentation"  cellpadding=3D"0" cellspacing=3D"=
+0" border=3D"0" width=3D"100%"
+                style=3D"font-size: 12px; width: 100%; margin-top: 45px; pa=
+dding: 0; border: none;border-collapse:collapse; mso-table-lspace:0pt; mso-=
+table-rspace:0pt;">
+                <tr>
+                    <td style=3D"margin: 0; padding: 0; color: #52677B">
+                        <p
+                        style=3D"margin: 0 0 4px 0; padding: 0; color: #2A3=
+33D; font-weight: bold; font-size: 14px; line-height: 24px; mso-line-height=
+-rule:exactly;">
+                        Fecha y Hora
+                        </p>
+                        <p
+                            style=3D"margin: 0 0 20px 0; padding: 0; color:=
+ #52677B; line-height: 16px; mso-line-height-rule:exactly; font-size: 12px;=
+">
+                            04/12/2025 18:56:03
+                        </p>
+                        <p
+                            style=3D"margin: 0 0 4px 0; padding: 0; color: =
+#2A333D; font-weight: bold; font-size: 14px; line-height: 24px; mso-line-he=
+ight-rule:exactly;">
+                            C&oacute;digo de autorizaci&oacute;n</p>=20
+                        <p
+                            style=3D"width: 99%; margin: 0 0 20px 0; paddin=
+g: 0; color: #52677B; line-height: 16px; mso-line-height-rule:exactly; font=
+-size: 12px;">
+                            145f4d2ffcd4dbd22</p>=20
+                            <p
+                            style=3D"margin: 0 0 4px 0; padding: 0; color: =
+#2A333D; font-weight: bold; font-size: 14px; line-height: 24px; mso-line-he=
+ight-rule:exactly;">
+                            N&deg; de consulta
+                        </p>
+                        <p
+                            style=3D"margin: 0; padding: 0; color: #52677B;=
+ line-height: 16px; mso-line-height-rule:exactly; font-size: 12px;">
+                            BMV176488536377318000000=20
+                        </p>
+                    </td>
+
+                    <!-- Logo -->
+                    <td style=3D"text-align: right; margin: 0; padding: 0; =
+vertical-align:top;" align=3D"right">
+                        <img alt=3D"Timbre" src=3D"https://servicios.bancoc=
+hile.cl/imagenes/movil/correo/mails-assets/v2/mi-banco/bch_stamp.png" heigh=
+t=3D"80" width=3D"80"
+                            style=3D"max-width: 100% !important; margin: 0;=
+ padding: 0; -ms-interpolation-mode:bicubic;" />
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>                <!--  Footer Call Center  -->
+<table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" border=3D"=
+0"
+    style=3D"width: 100%; margin: 0; padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+    <tr>
+        <td bgcolor=3D"#FFFFFF"
+            style=3D"display: block !important; max-width: 600px !important=
+; margin: 0 auto 0 auto; padding: 30px 10px 20px 10px; mso-line-height-rule=
+:exactly;">
+            <div>
+                <table role=3D"presentation" align=3D"center" cellpadding=
+=3D"0" cellspacing=3D"0" border=3D"0"
+                    style=3D"font-weight: bold; font-size: 15px!important; =
+line-height: 1.6; width: 100%; margin: 0; padding: 0; border: none;border-c=
+ollapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                        <tr>
+                                    <td
+                                        style=3D"text-align: center; margin=
+: 0; padding: 30px 0 4px 0; color: #52677B; font-weight: bold; border-top:1=
+px solid #CED7E0;">
+                                        Si tienes dudas o consultas, puedes=
+ llamar a nuestra Banca Telef&oacute;nica
+                                        <br>
+                                        o tambi&eacute;n, dirigirte a cualq=
+uiera de nuestras sucursales.
+                                    </td>
+                        </tr>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>                <!--  Foooter Social Media  -->
+<table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" border=3D"=
+0"
+    style=3D"width: 100%; margin: 0; padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+    <tr>
+        <td bgcolor=3D"#FFFFFF"
+            style=3D"display: block !important; max-width: 520px !important=
+; margin: 0 auto 0 auto;padding: 0px 40px; mso-line-height-rule:exactly;">
+            <div>
+                <table role=3D"presentation" align=3D"center" cellpadding=
+=3D"0" cellspacing=3D"0" border=3D"0"
+                    style=3D"width: 100%; margin: 0; padding: 0; border: no=
+ne;border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                    <tbody>
+                        <tr>
+                            <td style=3D" padding: 27px 0 40px 0; border-to=
+p:1px solid #CED7E0;">
+                                <table role=3D"presentation" align=3D"cente=
+r" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"
+                                    style=3D"width: 100%; margin: 0; paddin=
+g: 0; border: none;border-collapse:collapse; mso-table-lspace:0pt; mso-tabl=
+e-rspace:0pt; ">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <table role=3D"presentation=
+" align=3D"center" cellpadding=3D"0"
+                                                    cellspacing=3D"0" borde=
+r=3D"0"
+                                                    style=3D"max-width: 355=
+px; width: 100%; margin: auto; padding: 0; border: none;border-collapse:col=
+lapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td
+                                                                style=3D"te=
+xt-align: center; font-size: 14px; color: #52677B;">
+                                                                <img alt=3D=
+"Icono facebook" name=3D"face_ins.png"
+                                                                    src=3D"=
+https://servicios.bancochile.cl/imagenes/movil/correo/mails-assets/v2/icon_=
+social_facebook.png"
+                                                                    title=
+=3D"Icono Facebook"
+                                                                    style=
+=3D"max-width: 40px; margin: 0; padding: 0; -ms-interpolation-mode:bicubic;=
+" />
+
+                                                                <p style=3D=
+"font-size:11px; margin: 0; padding: 0;">
+                                                                    <span s=
+tyle=3D"color: #465868">bancochile.</span>cl</p>
+                                                            </td>
+                                                            <td
+                                                                style=3D"te=
+xt-align: center; font-size: 14px; color: #52677B;">
+                                                                <img alt=3D=
+"Twitter" name=3D"twe_ins.png"
+                                                                    src=3D"=
+https://servicios.bancochile.cl/imagenes/movil/correo/mails-assets/v2/icon_=
+social_twitter.png"
+                                                                    title=
+=3D"Icono Twitter"
+                                                                    style=
+=3D"max-width: 40px; margin: 0; padding: 0; -ms-interpolation-mode:bicubic;=
+" />
+
+                                                                <p style=3D=
+"font-size:11px; margin: 0; padding: 0;">
+                                                                    @AyudaB=
+ancoChile</p>
+                                                            </td>
+                                                            <td
+                                                                style=3D"te=
+xt-align: center; font-size: 14px; color: #52677B;">
+                                                                <img alt=3D=
+"Icono Instagram" name=3D"insta_ins.png"
+                                                                    src=3D"=
+https://servicios.bancochile.cl/imagenes/movil/correo/mails-assets/v2/icon_=
+social_instagram.png"
+                                                                    title=
+=3D"Icono Instagram"
+                                                                    style=
+=3D"max-width: 40px; margin: 0; padding: 0; -ms-interpolation-mode:bicubic;=
+" />
+
+                                                                <p style=3D=
+"font-size:11px; margin: 0; padding: 0;">
+                                                                    @bancod=
+echile</p>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <table role=3D"presentation=
+" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"
+                                                    style=3D"margin: 20px a=
+uto 0 auto !important; width: 100%;  padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; text-align: center=
+; max-width: 180px;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <table role=3D"=
+presentation" align=3D"left" cellpadding=3D"0"
+                                                                cellspacing=
+=3D"0" border=3D"0"
+                                                                style=3D"wi=
+dth: 100%; margin: 0; padding: 0; border: none;border-collapse:collapse; ms=
+o-table-lspace:0pt; mso-table-rspace:0pt; text-align: center;">
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td=
+ style=3D"letter-spacing: 1px; text-align: center; font-size: 20px; color: =
+#52677B; font-weight: bold;"
+                                                                           =
+ valign=3D"middle" width=3D"100%">
+                                                                           =
+ <b
+                                                                           =
+     style=3D"color: #52677B; line-height: 24px; mso-line-height-rule:exact=
+ly; font-family: 'Nunito Sans', Arial Bold, Arial;">
+                                                                           =
+     <a class=3D"disable-link" name=3D"number"
+                                                                           =
+         style=3D"color: #52677B; pointer-events: none !important; cursor: =
+text !important; text-decoration: none !important;">
+                                                                           =
+         600 637 37 37
+                                                                           =
+     </a>
+                                                                           =
+ </b>
+                                                                        </t=
+d>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td=
+ style=3D"text-align: center; font-size: 13px; color: #52677B; line-height:=
+ 24px; mso-line-height-rule:exactly"
+                                                                           =
+ valign=3D"middle" width=3D"100%">
+                                                                           =
+ <span style=3D"font-size:12px;">Banca Telef&oacute;nica</span>
+                                                                        </t=
+d>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </td>
+    </tr>
+</table>                <!--  Footer Alerts  -->
+<table role=3D"presentation" cellpadding=3D"0" cellspacing=3D"0" border=3D"=
+0"
+    style=3D"width: 100%; margin: 0; padding: 0; border: none;border-collap=
+se:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+    <tr>
+        <td bgcolor=3D"#0A1861"
+            style=3D"display: block !important; max-width: 520px !important=
+; margin: 0 auto 0 auto; padding: 24px 40px;mso-line-height-rule:exactly;">
+            <table role=3D"presentation" align=3D"center" cellpadding=3D"0"=
+ cellspacing=3D"0" border=3D"0"
+                style=3D"padding: 0; border: none;border-collapse:collapse;=
+ margin: auto!important;">
+                <tbody>
+                    <tr>
+                        <td>
+                            <img alt=3D"Alerta" name=3D"aleta_ins.png" heig=
+ht=3D"36" width=3D"36"
+                                src=3D"https://servicios.bancochile.cl/imag=
+enes/movil/correo/mails-assets/v2/icon_alert.png" title=3D"Alerta"
+                                style=3D"margin: 0 4px 0 0; padding: 0; -ms=
+-interpolation-mode:bicubic;" />
+                        </td>
+                        <td style=3D"font-size: 12px;color: #ffffff;text-al=
+ign: center"> ES CLAVE NO DAR
+                            TUS CLAVES
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table align=3D"center" cellpadding=3D"0" cellspacing=3D"0" bor=
+der=3D"0"
+                style=3D"padding: 0; border: none;border-collapse:collapse;=
+ min-width: 256px;">
+                <tbody>
+                    <tr>
+                        <td style=3D"font-size: 12px;color: #ffffff;text-al=
+ign: center;=20
+                                        line-height: 24px; font-weight: reg=
+ular; mso-line-height-rule:exactly;">
+                            Por seguridad, este cuerpo no contiene enlaces =
+al s&iacute;tio Web de Banco
+                            de Chile
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+</table>                <!--  Footer Importants MiBanco -->
+<table role=3D"presentation" align=3D"center" border=3D"0" cellpadding=3D"0=
+" cellspacing=3D"0" bgcolor=3D"#ffffff"
+    style=3D"padding: 0; margin: 0 0 16px 0; width:100%; ">
+    <tbody>
+        <tr>
+            <td style=3D"border-collapse:collapse; padding: 1px; border:non=
+e">
+                <table role=3D"presentation" align=3D"center" border=3D"0" =
+cellpadding=3D"0" cellspacing=3D"0" bgcolor=3D"#ffffff"
+                    style=3D"width:100%; border-radius: 0; border-collapse:=
+collapse;">
+                    <tbody>
+                        <tr>
+                            <td style=3D"border-collapse:collapse; padding:=
+ 8px 14px 14px; border:none">
+                                <!-- START - CARD RESUMEN BLUE CONTENT -->
+                                <table role=3D"presentation" cellpadding=3D=
+"0" cellspacing=3D"0" border=3D"0" width=3D"100%"
+                                    style=3D"font-size: 14px; width: 100%; =
+padding: 0; margin: 0; line-height: 24px; mso-line-height-rule:exactly;"
+                                    bgcolor=3D"#ffffff">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <table role=3D"presentation=
+" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"
+                                                    style=3D"max-width: 520=
+px; width: 100%; margin: 13px auto 0;  padding: 4px 0 0 0; border: none;bor=
+der-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                                                    <tr>
+                                                        <td
+                                                            style=3D"font-s=
+ize: 14px; margin: 0; padding: 0; color: #2A333D; font-weight: bold;mso-lin=
+e-height-rule:exactly;">
+                                                            Importante </td=
+>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style=3D"vertical-align:top=
+;">
+                                                <table role=3D"presentation=
+" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"
+                                                    style=3D"max-width: 520=
+px; width: 100%; margin: 13px auto 0;  padding: 4px 0 0 0; border: none;bor=
+der-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Es clave no dar tu
+                                                            claves.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Nunca entregar claves,
+                                                            informaci&oacut=
+e;n
+                                                            financiera o da=
+tos personales a nadie.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Ingresar a la
+                                                            p&aacute;gina d=
+el
+                                                            Banco digitando=
+ la
+                                                            direcci&oacute;=
+n en la barra del navegador.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Nunca descargar archivos
+                                                            adjuntos de
+                                                            remitentes desc=
+onocidos.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Solo seguir nuestras
+                                                            cuentas oficial=
+es
+                                                            certificadas en=
+ redes sociales (fijarse en
+                                                            el check junto =
+al nombre de la cuenta).
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Mantener actualizado el
+                                                            antivirus.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; En caso de detectar
+                                                            actividad sospe=
+chosa,
+                                                            contactarnos a =
+trav&eacute;s de nuestros
+                                                            canales
+                                                            oficiales de ay=
+uda.
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td align=3D"left" =
+valign=3D"top"
+                                                            style=3D"font-s=
+ize: 12px; margin: 0; padding: 0; color: #2A333D; font-weight: regular; lin=
+e-height: 14px;">
+                                                            &nbsp;&bull;&nb=
+sp; Informaci&oacute;n de
+                                                            c&oacute;mo
+                                                            evitar ser v&ia=
+cute;ctima de un
+                                                            fraude en nuest=
+ra p&aacute;gina web.
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style=3D"vertical-align:top=
+;">
+                                                <table role=3D"presentation=
+" cellpadding=3D"0" cellspacing=3D"0" border=3D"0"
+                                                    style=3D"max-width: 520=
+px; width: 100%; margin: 20px auto 0;  padding: 0; border: none;border-coll=
+apse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                                                    <tr>
+                                                        <td
+                                                            style=3D"margin=
+: 0; padding: 0; font-size: 12px; line-height: 16px; mso-line-height-rule:e=
+xactly; color: #52677B">
+                                                            Banco de Chile.=
+ Casa Matriz: Ahumada 251, Santiago de
+                                                            Chile.<br />
+                                                            Inf&oacute;rmes=
+e sobre la garant&iacute;a estatal de los
+                                                            dep&oacute;sito=
+s en su banco o en <a class=3D"disable-link"
+                                                                name=3D"cmf=
+chile"
+                                                                style=3D"co=
+lor: #52677B; pointer-events: none !important; cursor: text !important; tex=
+t-decoration: none !important;">www.cmfchile.cl</a>.
+                                                            &#169; 2025.<br=
+ />
+                                                            Todos los derec=
+hos reservados. </td>
+                                                    </tr>
+                                                </table>
+                                                <table role=3D"presentation=
+" align=3D"center" cellpadding=3D"0"
+                                                    cellspacing=3D"0" borde=
+r=3D"0"
+                                                    style=3D"min-width: 285=
+px; max-width: 376px; width: 100%; margin: 15px auto 28px; padding: 0 5px; =
+border: none;border-collapse:collapse;">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <img alt=3D=
+"Icono Hoja" name=3D"Ico-Hoja.png" height=3D"36"
+                                                                    width=
+=3D"36" src=3D"https://servicios.bancochile.cl/imagenes/movil/correo/mails-=
+assets/v2/icon_hoja.png"
+                                                                    title=
+=3D"Hoja"
+                                                                    style=
+=3D"margin: 0 5px 0 0; padding: 0; -ms-interpolation-mode:bicubic;" />
+                                                            </td>
+                                                            <td
+                                                                style=3D"fo=
+nt-size: 12px; margin: 0; padding: 0; color: #52677B; font-weight: regular;=
+ line-height: 14px; text-align: left; mso-line-height-rule:exactly;">
+                                                                Comprometid=
+os por un medio ambiente
+                                                                mejor, pref=
+iera los medios digitales al
+                                                                papel impre=
+so.
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <!-- END - CARD RESUMEN BLUE CONTENT -->
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </tbody>
+</table>                <!--  Footer Importants  -->
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

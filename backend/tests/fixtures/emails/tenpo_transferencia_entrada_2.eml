@@ -1,0 +1,721 @@
+Delivered-To: test.user@gmail.com
+Received: by 2002:a05:6022:3211:b0:72:554f:6661 with SMTP id bi17csp336155lab;
+        Wed, 16 Jul 2025 11:42:06 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGHWexaArltiKfhSpjJmB+sxzCpn6ozfA1R+YxPKATXPyP19zpxRH21o3u7X8YT6/97nwYl
+X-Received: by 2002:a05:6a21:33aa:b0:216:1476:f71 with SMTP id adf61e73a8af0-23814844751mr5323211637.39.1752691326035;
+        Wed, 16 Jul 2025 11:42:06 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1752691326; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Q+AsXkZBE2skcUFm8Q/YpS3YRsTfjp9KJALLCP6xG/ppJr6N+HLqTraXnEBNy16ITM
+         R0PuSTMjit3pW3lJwaxiHRNozfbx3eVfxWz/zC0uUhD58vDfBcigjOpSHmlP+E88h0P5
+         yZ2UChc6jMi8lvN2fF/i2PBhy8POSvUTGOSNo7Vkf4vEyBgIlABC0KoJKBIkLtsdxzNg
+         al9CGmp49X0DNeXoKLykSbflqzhgVYDayjDZH9Pn8qJOW4x6Stdhhr2WtB2yyOLFt5Un
+         7ghZ7DtkoNbYZ0MWjhorwGgcwJR0jA0PbFlfOmG1VZW6Ep92sKgijOjJlZwmivGncnsi
+         whFQ==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:mime-version:from:date:dkim-signature
+         :dkim-signature;
+        bh=R51tpMGSnwnYpZUO4TcFH1apg9+vRzhzUB9sk8QEFOE=;
+        fh=UIiw5jyEXc6LX81o4o/WsOi43loMhcpF9buAv5Jsm70=;
+        b=kBhLQUZtsXu4tYcBU6xYC/Br7IWobi58KNgPA418kwy6M0qCeyh3noxATLFPaTWZCh
+         eV3SeFFhE1h2/eH1wUUsw00rNlSR0JhCUztQDkYHSLy24pYplCA/Ocz45yBhSpEk1XC0
+         YZORjC29J3zOxwOYKXXQZ0whpQNJyjLQV82u8QsXACAoGTP/5EYG+mjZrrsxgFBOZI9o
+         jgYm6uBKryPNj1TtGQe44j61+iPUsQjTHkNDSfgnQPy8pVubrRQSgsAMEFZ1fLLtNvuN
+         EqvnFSQnbXJkI7LB+LWAs/UqUotf5NnT4xWdecZ1VAduUnJ0qeUJJA547/bzHeD0W+NX
+         SGGw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@tenpo.cl header.s=s1 header.b=YLtLyQNV;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b=i0Xc+eIv;
+       spf=pass (google.com: domain of bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl designates 149.72.247.213 as permitted sender) smtp.mailfrom="bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=tenpo.cl
+Return-Path: <bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl>
+Received: from wrqvftdr.outbound-mail.sendgrid.net (wrqvftdr.outbound-mail.sendgrid.net. [149.72.247.213])
+        by mx.google.com with ESMTPS id 41be03b00d2f7-b3bbe5e5882si19643237a12.3.2025.07.16.11.42.05
+        for <test.user@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Jul 2025 11:42:06 -0700 (PDT)
+Received-SPF: pass (google.com: domain of bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl designates 149.72.247.213 as permitted sender) client-ip=149.72.247.213;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@tenpo.cl header.s=s1 header.b=YLtLyQNV;
+       dkim=pass header.i=@sendgrid.info header.s=smtpapi header.b=i0Xc+eIv;
+       spf=pass (google.com: domain of bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl designates 149.72.247.213 as permitted sender) smtp.mailfrom="bounces+10332379-5d66-test.user=gmail.com@sendgrid.tenpo.cl";
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=tenpo.cl
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=tenpo.cl;
+	h=content-type:date:from:mime-version:subject:to:cc:content-type:date:
+	feedback-id:from:subject:to;
+	s=s1; bh=R51tpMGSnwnYpZUO4TcFH1apg9+vRzhzUB9sk8QEFOE=;
+	b=YLtLyQNVWdqNWerI0u7lUmS+Y/xZi43U2M5F57AZFa+i5HKUgZ1domLDz6etVlnRhHwR
+	AeQDGIrvbRVkdK9yyXU4UGjpLhpu3xyKzZLhPEowTxPh8XJ3sbvxxf4sYBB/wnGFzMN11k
+	Y9VllJJcYrqeLY5zSdS9IS0M8mKeGIhyGgQ0ymunCZjg40Cl/aEMrWCKfDb/wOZlohKMsK
+	H/OyrUfgYOJkIyp0vPLmVRXXrDBpXgpJ9h9yIrHjBMwN0UNc5RjPXXIZmOH24bcTBge+hE
+	k1YgQRTauN8Bn6b67gsFHfD7POZKkUnn8kmtO8EJ+rKBBLTe/rh/EFNfMapcHKCw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sendgrid.info;
+	h=content-type:date:from:mime-version:subject:to:cc:content-type:date:
+	feedback-id:from:subject:to;
+	s=smtpapi; bh=R51tpMGSnwnYpZUO4TcFH1apg9+vRzhzUB9sk8QEFOE=;
+	b=i0Xc+eIvQgtPG1KQN8Z4oyKV7mlup/6nWCjsmvrWqbUlLTHuLHAgYlwWSlj/g/FDUaaz
+	DX2dPQxY4eao93CnGjdZq++Ntq10YTM3tWmM7skSV4x2nSPld/qH5ZwGer3Cas5qlWDaKV
+	5avTiWlPYStuQkRERdP7ZuXOzhNXCScGI=
+Received: by recvd-7df794f748-6dg96 with SMTP id recvd-7df794f748-6dg96-1-6877F27C-6A
+	2025-07-16 18:42:04.662185056 +0000 UTC m=+3636500.786506003
+Received: from MTAzMzIzNzk (unknown)
+	by geopod-ismtpd-31 (SG) with HTTP
+	id z1vtqZO7QsqZWBfO1c3jhw
+	Wed, 16 Jul 2025 18:42:04.636 +0000 (UTC)
+Content-Type: multipart/alternative; boundary=72f7569c97f8daf2c39cd8fbabdbb6c8cf4302d33f0ac6c538b546d99ec9
+Date: Wed, 16 Jul 2025 18:42:04 +0000 (UTC)
+From: Tenpo <no-reply@tenpo.cl>
+Mime-Version: 1.0
+Message-ID: <z1vtqZO7QsqZWBfO1c3jhw@geopod-ismtpd-31>
+Subject: Comprobante de transferencia - Tenpo
+X-SG-EID: 
+ =?us-ascii?Q?u001=2E1=2F=2F=2FLwnbraUBaVSz1z6nCu4xJGHQOQYt7MeDsA0twapgaL7GVKpsslR9J?=
+ =?us-ascii?Q?FSOmsL9TjJO3B90CORQXLOfJLj0P0akVk7wU8VI?=
+ =?us-ascii?Q?lPSa73KRZj7B4D+FThhWSLGir3r9=2FRkEqYnDlp=2F?=
+ =?us-ascii?Q?AUHPYIrk3QZhBhdA2AmawSrN48NelEjctLhR399?=
+ =?us-ascii?Q?lExYb6DK5Vt5NyOLP+=2F9lG=2FqybzlEFQG2OV+gI4?=
+ =?us-ascii?Q?nqI2r9DhTb4pUimr9s=2Fmcw=3D?=
+To: test.user@gmail.com
+X-Entity-ID: u001.kQ1eeiNvnlna/xCov0QhOg==
+
+--72f7569c97f8daf2c39cd8fbabdbb6c8cf4302d33f0ac6c538b546d99ec9
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Mime-Version: 1.0
+
+Tenpo
+
+Comprobante de recibo transferencia
+
+La transferencia de Juan CarlosPérez por 173.000 a tu cuenta Tenpo fue =
+exitosa
+
+Monto transferencia:
+
+$173.000
+
+Origen transferencia:
+
+Juan CarlosPérez
+
+Banco de origen:
+
+BANCO DE CHILE/EDWARDS
+
+N=C2=BA cuenta de origen:
+
+112345067
+
+RUT:
+
+12.345.678-9
+
+Fecha:
+
+16-07-2025
+
+Hora:
+
+14:42:02
+
+C=C3=B3digo de transferencia:
+
+000000000000
+
+Tu saldo puede tardar unos minutos en reflejarse. Puedes
+ verificar en tu cuenta Tenpo en el =E2=80=9CHistorial de movimientos=E2=80=
+=9D
+
+Comprometidos con tu seguridad
+
+Solo te enviaremos correos electr=C3=B3nicos con links desde paratodos@tenp=
+o.cl
+
+Nunca te enviaremos correos electr=C3=B3nicos, SMS o llamaremos solicitando=
+ tus datos personales, ni claves.
+
+Siempre verifica el remitente de los correos. Los comunicados entre Tenpo y=
+ sus clientes siempre ser=C3=A1n desde ejemplo@tenpo.cl
+
+S=C3=ADguenos en
+
+https://www.instagram.com/tenpocl/
+ https://www.facebook.com/tenpocl/
+ https://www.youtube.com/channel/UCIME71_G_FoiRPx8jARO_IA?view_as=3Dsubscri=
+ber
+
+Inf=C3=B3rmese sobre las entidades autorizadas para emitir Tarjetas de Pago=
+ en el pa=C3=ADs, quienes se encuentran inscritas en los Registros de Emiso=
+res de Tarjetas que lleva la CMF, en http://www.cmfchile.cl http://www.cmfc=
+hile.cl
+
+Inf=C3=B3rmese sobre la garant=C3=ADa estatal de los dep=C3=B3sitos en su b=
+anco o en http://www.cmfchile.cl http://www.cmfchile.cl
+--72f7569c97f8daf2c39cd8fbabdbb6c8cf4302d33f0ac6c538b546d99ec9
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+Mime-Version: 1.0
+
+<!DOCTYPE html>
+<html lang=3D"en">
+  <head>
+    <meta charset=3D"UTF-8" />
+    <meta http-equiv=3D"X-UA-Compatible" content=3D"IE=3Dedge" />
+    <meta name=3D"viewport" content=3D"width=3Ddevice-width, initial-scale=
+=3D1.0" />
+    <title>Tenpo</title>
+    <link
+      href=3D"http://fonts.googleapis.com/css?family=3DMontserrat:200,300,4=
+00,500,600,700,800"
+      rel=3D"stylesheet"
+      type=3D"text/css"
+    />
+    <style>
+      table {
+        background-repeat:no-repeat !important;
+      }
+    </style>
+  </head>
+  <body class=3D"body">
+    <table
+      width=3D"100%"
+      style=3D"margin: 0 auto; max-width: 390px"
+      cellpadding=3D"0"
+      cellspacing=3D"0"
+    >
+      <tr>
+        <td>
+          <table width=3D"100%" cellpadding=3D"0" cellspacing=3D"0">
+            <tr>
+              <td style=3D"text-align: center">
+                <img
+                  src=3D"https://tenpoimagesstorage2.blob.core.windows.net/=
+email-templates/images/tenpo.png"
+                  width=3D"87"
+                  style=3D"padding: 12px 0"
+                />
+              </td>
+            </tr>
+          </table>
+          <table width=3D"100%" cellpadding=3D"12" cellspacing=3D"0"  backg=
+round=3D"https://tenpoimagesstorage2.blob.core.windows.net/email-templates/=
+images1101/fondo.png"=20
+          border=3D"0" role=3D"presentation"=20
+          style=3D"background:url('https://tenpoimagesstorage2.blob.core.wi=
+ndows.net/email-templates/images1101/fondo.png');
+          background-position:center top;
+          background-repeat:no-repeat;
+          background-size:cover;
+          width:100%;
+          border-radius:10px;
+          text-align: center">
+            <tr>
+              <td
+                height=3D"210"
+                style=3D"
+                  background: #00000000;
+                  background-image: linear-gradient(#00000000, #00000000);
+                  color: #fff;
+                  text-align: center;
+                  border-radius: 10px;
+                "
+              >
+                <div class=3D"gmail-blend-screen">
+                  <div class=3D"gmail-blend-difference">
+                    <img
+                   =20
+                      src=3D"https://tenpoimagesstorage2.blob.core.windows.=
+net/email-templates/images/success.png"
+                      width=3D"36"
+                    />
+                    <h2
+                      style=3D"
+                        font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                        color: #ffffff;
+                        font-size:26;
+                        margin-bottom:10px;
+                        margin-top:10px;
+                      "
+                    >
+                      Comprobante de recibo transferencia
+                    </h2>
+                    <span
+                      style=3D"
+                        font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                        font-size: 14px;
+                        font-weight: 200;
+                        color: #ffffff;
+                        display: inline-block;
+                        width: 80%;
+                      "
+                      >La transferencia de Juan CarlosPérez por 173.000=
+ a tu cuenta Tenpo fue exitosa</span
+                    >
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </table>
+          <!-- INFO TABLE-->
+          <table
+            width=3D"100%"
+            cellpadding=3D"0"
+            cellspacing=3D"0"
+            style=3D"margin-top: 24px"
+          >
+            <tr>
+              <td
+                style=3D"
+                  text-align: center;
+                  background-color: #acacac10;
+                  border-radius: 10px;
+                "
+              >
+                <table
+                  width=3D"100%"
+                  cellpadding=3D"10"
+                  cellspacing=3D"0"
+                  style=3D"
+                  margin-top: 10px;
+                  margin-bottom: 10px;"
+                >
+                  <tr>
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Monto transferencia:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        $173.000</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style=3D"text-align: left; padding-bottom: 15px;">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Origen transferencia:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right; padding-bottom: 15px;">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Juan CarlosPérez</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+          					<td style=3D"box-sizing: border-box; font-family: 'Montserra=
+t', 'Helvetica', sans-serif; vertical-align: top; opacity: 1; font-size: 0;=
+ line-height: 0; height: 1px; margin: 0; padding: 0; border-top: 1px solid =
+#E3E3E3;" valign=3D"top">
+                		</td>
+          					<td style=3D"box-sizing: border-box; font-family: 'Montserra=
+t', 'Helvetica', sans-serif; vertical-align: top; opacity: 1; font-size: 0;=
+ line-height: 0; height: 1px; margin: 0; padding: 0; border-top: 1px solid =
+#E3E3E3;" valign=3D"top">
+                		</td>              	=09
+                  </tr>
+                  <tr>
+                    <td style=3D"text-align: left; padding-top: 15px;">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Banco de origen:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right; padding-top: 15px;">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        BANCO DE CHILE/EDWARDS</span
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        N=C2=BA cuenta de origen:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        112345067</span
+                      >
+                    </td>
+                  </tr>
+                  <tr style=3D"padding-bottom:15px">
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        RUT:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        12.345.678-9</span
+                      >
+                    </td>
+                  </tr>
+                  <tr style=3D"padding-bottom:15px">
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Fecha:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        16-07-2025</span
+                      >
+                    </td>
+                  </tr>
+                  <tr style=3D"padding-bottom:15px">
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        Hora:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        14:42:02</span
+                      >
+                    </td>
+                  </tr>
+                  <tr style=3D"padding-bottom:15px">
+                    <td style=3D"text-align: left">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #717171;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        C=C3=B3digo de transferencia:</span
+                      >
+                    </td>
+                    <td style=3D"text-align: right">
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #121212;
+                          font-size: 14px;
+                          font-weight: 200;
+                        "
+                      >
+                        000000000000</span
+                      >
+                    </td>
+                  </tr>                 =20
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- disclaimer 1-->
+          <table
+            width=3D"100%"
+            style=3D"margin-top: 2px"
+            cellpadding=3D"0"
+            cellspacing=3D"0"
+          >
+            <tr>
+              <td style=3D"text-align: center; padding: 0 19px">
+                <span
+                  style=3D"
+                    font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                    font-size: 10px;
+                  "
+                >
+                  Tu saldo puede tardar unos minutos en reflejarse. Puedes
+                  verificar en tu cuenta Tenpo en el <strong>=E2=80=9CHisto=
+rial de movimientos=E2=80=9D
+                </span>
+              </td>
+            </tr>
+          </table>
+          <!-- // INFO TABLE-->
+
+          <!-- imagen telefono -->
+
+          <!-- // imagen telefono -->
+
+          <!-- Seguridad -->
+          <table style=3D"margin-top: 10px" cellpadding=3D"0" cellspacing=
+=3D"0">
+            <tr>
+              <td style=3D"text-align: center" colspan=3D"2">
+                <table style=3D"margin: 0 auto" cellpadding=3D"5" cellspaci=
+ng=3D"0">
+                  <tr>
+                    <td style=3D"vertical-align: middle; text-align: right"=
+>
+                      <img
+                        src=3D"https://tenpoimagesstorage2.blob.core.window=
+s.net/email-templates/images/security.png"
+                        width=3D"19"
+                      />
+                    </td>
+                    <td>
+                      <h2
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          color: #000000;
+                          font-size: 14px;
+                        "
+                      >
+                        Comprometidos con tu seguridad
+                      </h2>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style=3D"vertical-align: top; padding: 2px 5px">
+                <img
+                  src=3D"https://tenpoimagesstorage2.blob.core.windows.net/=
+email-templates/images/1.png"
+                  width=3D"11"
+                />
+              </td>
+              <td style=3D"padding: 0;">
+                            <span style=3D"font-family: 'Montserrat', 'Robo=
+to', 'Helvetica'; font-size: 10px; font-weight: 200; color:#121212; margin:=
+ 0;">Solo te enviaremos correos electr&oacute;nicos con links desde <strong=
+>paratodos@tenpo.cl</strong></span>
+                        </td>
+            </tr>
+            <tr>
+              <td style=3D"vertical-align: top; padding: 2px 5px">
+                <img
+                  src=3D"https://tenpoimagesstorage2.blob.core.windows.net/=
+email-templates/images/2.png"
+                  width=3D"11"
+                />
+              </td>
+              <td style=3D"padding: 0;">
+                            <span style=3D"font-family: 'Montserrat', 'Robo=
+to', 'Helvetica'; font-size: 10px; font-weight: 200; color:#121212; margin:=
+ 0;">Nunca te enviaremos correos electr=C3=B3nicos, SMS o llamaremos solici=
+tando tus datos personales, ni claves.</span>
+                        </td>
+                        <tr>
+                        <td style=3D"vertical-align: top; padding: 2px 5px;=
+">
+                            <img src=3D"https://tenpoimagesstorage2.blob.co=
+re.windows.net/email-templates/images/3.png" width=3D"11" />
+                        </td>
+                        <td style=3D"padding: 0;">
+                            <span style=3D"font-family: 'Montserrat', 'Robo=
+to', 'Helvetica'; font-size: 10px; font-weight: 200; color:#121212; margin:=
+ 0;">Siempre verifica el remitente de los correos. Los comunicados entre Te=
+npo y sus clientes siempre ser&aacute;n desde <strong>ejemplo@tenpo.cl</str=
+ong></span>
+                        </td>
+                    </tr> =20
+            </tr>
+          </table>
+          <!-- // Seguridad -->
+
+          <!-- socialmedia -->
+          <table
+            width=3D"100%"
+            style=3D"margin-top: 24px"
+            cellpadding=3D"0"
+            cellspacing=3D"0"
+          >
+            <tr>
+              <td>
+                <table cellpadding=3D"5" cellspacing=3D"0" style=3D"margin:=
+ 0 auto">
+                  <tr>
+                    <td>
+                      <span
+                        style=3D"
+                          font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                          font-size: 12px;
+                          font-weight: 200;
+                          color: #717171;
+                        "
+                        >S&iacute;guenos en</span
+                      >
+                    </td>
+                    <td style=3D"padding-top: 12px">
+                      <a
+                        href=3D"https://www.instagram.com/tenpocl/"
+                        target=3D"_blank"
+                        ><img
+                          src=3D"https://tenpoimagesstorage2.blob.core.wind=
+ows.net/email-templates/images/instagram.png"
+                          height=3D"15"
+                          style=3D"padding: 0 3px"
+                      /></a>
+                      <a
+                        href=3D"https://www.facebook.com/tenpocl/"
+                        target=3D"_blank"
+                        ><img
+                          src=3D"https://tenpoimagesstorage2.blob.core.wind=
+ows.net/email-templates/images/facebook.png"
+                          height=3D"15"
+                          style=3D"padding: 0 3px"
+                      /></a>
+                      <a
+                        href=3D"https://www.youtube.com/channel/UCIME71_G_F=
+oiRPx8jARO_IA?view_as=3Dsubscriber"
+                        target=3D"_blank"
+                        ><img
+                          src=3D"https://tenpoimagesstorage2.blob.core.wind=
+ows.net/email-templates/images/youtube.png"
+                          height=3D"15"
+                          style=3D"padding: 0 3px"
+                      /></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          <!-- //socialmedia -->
+
+          <!-- Disclaimer -->
+          <table
+            width=3D"100%"
+            style=3D"margin-top: 24px"
+            cellpadding=3D"0"
+            cellspacing=3D"0"
+          >
+            <tr>
+              <td style=3D"text-align: center">
+                <span
+                  style=3D"
+                    font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                    font-size: 10px;
+                    font-weight: 200;
+                    color: #121212;
+                    margin: 0;
+                  "
+                  >Inf=C3=B3rmese sobre las entidades autorizadas para emit=
+ir Tarjetas de Pago en el pa=C3=ADs, quienes se encuentran inscritas en los=
+ Registros de Emisores de Tarjetas que lleva la CMF, en <a href=3D"http://w=
+ww.cmfchile.cl">http://www.cmfchile.cl</a></span
+                >
+                <br/>
+                <span
+                  style=3D"
+                    font-family: 'Montserrat', 'Roboto', 'Helvetica';
+                    font-size: 10px;
+                    font-weight: 200;
+                    color: #121212;
+                    margin: 0;
+                  "
+                  >Inf=C3=B3rmese sobre la garant=C3=ADa estatal de los dep=
+=C3=B3sitos en su banco o en <a href=3D"http://www.cmfchile.cl">http://www.=
+cmfchile.cl</a> </span
+                >
+              </td>
+            </tr>
+          </table>
+        </td><img src=3D"http://url7240.tenpo.cl/wf/open?upn=3Du001.jEn4rAi=
+H8UewuZX77jG2cXRXWOPwb72OcfXhqoySEJ5w9wdeGPe2Psy6IAw7tHPFXTLvtEj1Lqai6BGV63=
+XfVjxt6mP-2FtGZ3FPo9mu39BWEcWJSkjLNjnPH5RVwYCQLDyDzo-2FI8hYuJOlK8EpHGj9UOqp=
+GrEuFmoH-2B6z1F4-2BOGnDmO-2FaCPrZIdUW0nnku-2BsAtShpwvHgtt0pnjQ17MNMug-3D-3D=
+" alt=3D"" width=3D"1" height=3D"1" border=3D"0" style=3D"height:1px !impor=
+tant;width:1px !important;border-width:0 !important;margin-top:0 !important=
+;margin-bottom:0 !important;margin-right:0 !important;margin-left:0 !import=
+ant;padding-top:0 !important;padding-bottom:0 !important;padding-right:0 !i=
+mportant;padding-left:0 !important;"/>
+--72f7569c97f8daf2c39cd8fbabdbb6c8cf4302d33f0ac6c538b546d99ec9--

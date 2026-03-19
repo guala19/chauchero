@@ -70,40 +70,86 @@ def parser():
     return BancoChileParser()
 
 
-# ── Cargo en Cuenta ───────────────────────────────────────────────────────────
+# ── Cargo en Cuenta 0 ────────────────────────────────────────────────────────
 
-class TestFixtureCargoCuenta:
+class TestFixtureCargoCuenta0:
     def test_parser_matches_email(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         assert parser.matches_email(email)
 
     def test_parses_without_exception(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         result = parser.parse(email)
         assert result is not None
 
     def test_has_positive_amount(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         result = parser.parse(email)
         assert result.amount > 0
 
     def test_has_transaction_date(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         result = parser.parse(email)
         assert isinstance(result.transaction_date, datetime)
 
     def test_has_description(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         result = parser.parse(email)
         assert result.description and len(result.description) > 0
 
     def test_type_is_debit(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
         result = parser.parse(email)
         assert result.transaction_type in ("debit", "credit", "transfer_debit", "transfer_credit")
 
     def test_confidence_is_reasonable(self, parser):
-        email = load_eml("Cargo en Cuenta.eml")
+        email = load_eml("banco_chile_cargo_cuenta_0.eml")
+        result = parser.parse(email)
+        assert result.confidence >= 50
+
+
+# ── Cargo en Cuenta 1 ────────────────────────────────────────────────────────
+
+class TestFixtureCargoCuenta1:
+    def test_parser_matches_email(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_1.eml")
+        assert parser.matches_email(email)
+
+    def test_parses_without_exception(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_1.eml")
+        result = parser.parse(email)
+        assert result is not None
+
+    def test_has_positive_amount(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_1.eml")
+        result = parser.parse(email)
+        assert result.amount > 0
+
+    def test_confidence_is_reasonable(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_1.eml")
+        result = parser.parse(email)
+        assert result.confidence >= 50
+
+
+# ── Cargo en Cuenta 2 ────────────────────────────────────────────────────────
+
+class TestFixtureCargoCuenta2:
+    def test_parser_matches_email(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_2.eml")
+        assert parser.matches_email(email)
+
+    def test_parses_without_exception(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_2.eml")
+        result = parser.parse(email)
+        assert result is not None
+
+    def test_has_positive_amount(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_2.eml")
+        result = parser.parse(email)
+        assert result.amount > 0
+
+    def test_confidence_is_reasonable(self, parser):
+        email = load_eml("banco_chile_cargo_cuenta_2.eml")
         result = parser.parse(email)
         assert result.confidence >= 50
 
@@ -112,82 +158,161 @@ class TestFixtureCargoCuenta:
 
 class TestFixtureComprobantePago:
     def test_parser_matches_email(self, parser):
-        email = load_eml("Comprobante de Pago.eml")
+        email = load_eml("banco_chile_comprobante_pago_1.eml")
         assert parser.matches_email(email)
 
     def test_parses_without_exception(self, parser):
-        email = load_eml("Comprobante de Pago.eml")
+        email = load_eml("banco_chile_comprobante_pago_1.eml")
         result = parser.parse(email)
         assert result is not None
 
     def test_has_positive_amount(self, parser):
-        email = load_eml("Comprobante de Pago.eml")
+        email = load_eml("banco_chile_comprobante_pago_1.eml")
         result = parser.parse(email)
         assert result.amount > 0
 
     def test_has_transaction_date(self, parser):
-        email = load_eml("Comprobante de Pago.eml")
+        email = load_eml("banco_chile_comprobante_pago_1.eml")
         result = parser.parse(email)
         assert isinstance(result.transaction_date, datetime)
 
     def test_confidence_is_reasonable(self, parser):
-        email = load_eml("Comprobante de Pago.eml")
+        email = load_eml("banco_chile_comprobante_pago_1.eml")
         result = parser.parse(email)
         assert result.confidence >= 50
 
 
-# ── Transferencia a Terceros ──────────────────────────────────────────────────
+# ── Transferencia a Terceros (Salida) 0 ──────────────────────────────────────
 
-class TestFixtureTransferenciaTerceros:
+class TestFixtureTransferenciaSalida0:
     def test_parser_matches_email(self, parser):
-        email = load_eml("Transferencia a Terceros.eml")
+        email = load_eml("banco_chile_transferencia_salida_0.eml")
         assert parser.matches_email(email)
 
     def test_parses_without_exception(self, parser):
-        email = load_eml("Transferencia a Terceros.eml")
+        email = load_eml("banco_chile_transferencia_salida_0.eml")
         result = parser.parse(email)
         assert result is not None
 
     def test_has_positive_amount(self, parser):
-        email = load_eml("Transferencia a Terceros.eml")
+        email = load_eml("banco_chile_transferencia_salida_0.eml")
         result = parser.parse(email)
         assert result.amount > 0
 
     def test_type_is_transfer_debit(self, parser):
-        email = load_eml("Transferencia a Terceros.eml")
+        email = load_eml("banco_chile_transferencia_salida_0.eml")
         result = parser.parse(email)
         assert result.transaction_type == "transfer_debit"
 
     def test_confidence_is_reasonable(self, parser):
-        email = load_eml("Transferencia a Terceros.eml")
+        email = load_eml("banco_chile_transferencia_salida_0.eml")
         result = parser.parse(email)
         assert result.confidence >= 50
 
 
-# ── Aviso de Transferencia ────────────────────────────────────────────────────
+# ── Transferencia Salida 1 ───────────────────────────────────────────────────
 
-class TestFixtureAvisoTransferencia:
+class TestFixtureTransferenciaSalida1:
     def test_parser_matches_email(self, parser):
-        email = load_eml("Aviso de transferencia de fondos.eml")
+        email = load_eml("banco_chile_transferencia_salida_1.eml")
         assert parser.matches_email(email)
 
     def test_parses_without_exception(self, parser):
-        email = load_eml("Aviso de transferencia de fondos.eml")
+        email = load_eml("banco_chile_transferencia_salida_1.eml")
         result = parser.parse(email)
         assert result is not None
 
     def test_has_positive_amount(self, parser):
-        email = load_eml("Aviso de transferencia de fondos.eml")
+        email = load_eml("banco_chile_transferencia_salida_1.eml")
+        result = parser.parse(email)
+        assert result.amount > 0
+
+    def test_type_is_transfer_debit(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_1.eml")
+        result = parser.parse(email)
+        assert result.transaction_type == "transfer_debit"
+
+    def test_confidence_is_reasonable(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_1.eml")
+        result = parser.parse(email)
+        assert result.confidence >= 50
+
+
+# ── Transferencia Salida 2 ───────────────────────────────────────────────────
+
+class TestFixtureTransferenciaSalida2:
+    def test_parser_matches_email(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_2.eml")
+        assert parser.matches_email(email)
+
+    def test_parses_without_exception(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_2.eml")
+        result = parser.parse(email)
+        assert result is not None
+
+    def test_has_positive_amount(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_2.eml")
+        result = parser.parse(email)
+        assert result.amount > 0
+
+    def test_confidence_is_reasonable(self, parser):
+        email = load_eml("banco_chile_transferencia_salida_2.eml")
+        result = parser.parse(email)
+        assert result.confidence >= 50
+
+
+# ── Aviso de Transferencia (Entrada) 1 ───────────────────────────────────────
+
+class TestFixtureTransferenciaEntrada1:
+    def test_parser_matches_email(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_1.eml")
+        assert parser.matches_email(email)
+
+    def test_parses_without_exception(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_1.eml")
+        result = parser.parse(email)
+        assert result is not None
+
+    def test_has_positive_amount(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_1.eml")
         result = parser.parse(email)
         assert result.amount > 0
 
     def test_type_is_transfer_credit(self, parser):
-        email = load_eml("Aviso de transferencia de fondos.eml")
+        email = load_eml("banco_chile_transferencia_entrada_1.eml")
         result = parser.parse(email)
         assert result.transaction_type == "transfer_credit"
 
     def test_confidence_is_reasonable(self, parser):
-        email = load_eml("Aviso de transferencia de fondos.eml")
+        email = load_eml("banco_chile_transferencia_entrada_1.eml")
+        result = parser.parse(email)
+        assert result.confidence >= 50
+
+
+# ── Transferencia Entrada 2 ──────────────────────────────────────────────────
+
+class TestFixtureTransferenciaEntrada2:
+    def test_parser_matches_email(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_2.eml")
+        assert parser.matches_email(email)
+
+    def test_parses_without_exception(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_2.eml")
+        result = parser.parse(email)
+        assert result is not None
+
+    def test_has_positive_amount(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_2.eml")
+        result = parser.parse(email)
+        assert result.amount > 0
+
+    def test_type_is_transfer_credit(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_2.eml")
+        result = parser.parse(email)
+        assert result.transaction_type == "transfer_credit"
+
+    def test_confidence_is_reasonable(self, parser):
+        email = load_eml("banco_chile_transferencia_entrada_2.eml")
         result = parser.parse(email)
         assert result.confidence >= 50
 
@@ -213,7 +338,7 @@ class TestParserRobustness:
             sender="enviodigital@bancochile.cl",
             subject="Cargo en Cuenta",
             body="",
-            html_body="<html>GARBAGE CONTENT 🤖 ñoño</html>",
+            html_body="<html>GARBAGE CONTENT</html>",
             date=datetime.now(timezone.utc),
         )
         result = parser.parse(email)

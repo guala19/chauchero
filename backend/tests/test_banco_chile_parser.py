@@ -56,7 +56,7 @@ def parser():
 # ── fixture-based parser tests ───────────────────────────────────────────────
 
 def test_cargo_cuenta(parser):
-    email_data = load_eml("Cargo en Cuenta.eml")
+    email_data = load_eml("banco_chile_cargo_cuenta_0.eml")
     result = parser.parse(email_data)
 
     assert result is not None
@@ -70,7 +70,7 @@ def test_cargo_cuenta(parser):
 
 
 def test_comprobante_pago(parser):
-    email_data = load_eml("Comprobante de Pago.eml")
+    email_data = load_eml("banco_chile_comprobante_pago_1.eml")
     result = parser.parse(email_data)
 
     assert result is not None
@@ -84,12 +84,12 @@ def test_comprobante_pago(parser):
 
 
 def test_transferencia_salida(parser):
-    email_data = load_eml("Transferencia a Terceros.eml")
+    email_data = load_eml("banco_chile_transferencia_salida_0.eml")
     result = parser.parse(email_data)
 
     assert result is not None
     assert result.amount == Decimal("230000")
-    assert result.description == "Esteban Pincheira Gaete"
+    assert result.description == "Pedro González Muñoz"
     assert result.transaction_type == "transfer_debit"
     assert result.transaction_date.day == 10
     assert result.transaction_date.month == 3
@@ -97,12 +97,12 @@ def test_transferencia_salida(parser):
 
 
 def test_transferencia_entrada(parser):
-    email_data = load_eml("Aviso de transferencia de fondos.eml")
+    email_data = load_eml("banco_chile_transferencia_entrada_1.eml")
     result = parser.parse(email_data)
 
     assert result is not None
     assert result.amount == Decimal("5000")
-    assert result.description == "Diego Alejandro Guala"
+    assert result.description == "Juan Carlos Pérez"
     assert result.transaction_type == "transfer_credit"
     assert result.transaction_date.day == 4
     assert result.transaction_date.month == 2
@@ -112,7 +112,7 @@ def test_transferencia_entrada(parser):
 # ── matches_email ─────────────────────────────────────────────────────────────
 
 def test_matches_banco_chile_email(parser):
-    email_data = load_eml("Cargo en Cuenta.eml")
+    email_data = load_eml("banco_chile_cargo_cuenta_0.eml")
     assert parser.matches_email(email_data) is True
 
 
