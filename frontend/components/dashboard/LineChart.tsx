@@ -32,7 +32,7 @@ function dataToPath(data: MonthData[], width: number, height: number) {
   return { linePath: path, areaPath, points, niceMax };
 }
 
-export default function LineChart({ months }: { months: MonthData[] }) {
+export default function LineChart({ months, selectedIdx }: { months: MonthData[]; selectedIdx?: number }) {
   const [activeFilter, setActiveFilter] = useState("6M");
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
@@ -106,20 +106,26 @@ export default function LineChart({ months }: { months: MonthData[] }) {
             </defs>
             <path d={areaPath} fill="url(#chartGradient)" />
             <path d={linePath} fill="none" stroke="#3A7D5E" strokeLinecap="round" strokeWidth={3} />
-            {points.map((p, i) => (
-              <circle
-                key={i}
-                cx={p.x}
-                cy={p.y}
-                r={hoveredPoint === i ? 6 : i === points.length - 1 ? 5 : 4}
-                fill={i === points.length - 1 || hoveredPoint === i ? "#3A7D5E" : "#ffffff"}
-                stroke="#3A7D5E"
-                strokeWidth={2}
-                className="cursor-pointer transition-all"
-                onMouseEnter={() => setHoveredPoint(i)}
-                onMouseLeave={() => setHoveredPoint(null)}
-              />
-            ))}
+            {points.map((p, i) => {
+              const isSelected = selectedIdx === i;
+              const isHovered = hoveredPoint === i;
+              const isLast = i === points.length - 1;
+              const isFilled = isSelected || isHovered || isLast;
+              return (
+                <circle
+                  key={i}
+                  cx={p.x}
+                  cy={p.y}
+                  r={isHovered ? 6 : isFilled ? 5 : 4}
+                  fill={isFilled ? "#3A7D5E" : "#ffffff"}
+                  stroke="#3A7D5E"
+                  strokeWidth={2}
+                  className="cursor-pointer transition-all"
+                  onMouseEnter={() => setHoveredPoint(i)}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                />
+              );
+            })}
           </svg>
 
           {/* Tooltip */}
@@ -141,7 +147,7 @@ export default function LineChart({ months }: { months: MonthData[] }) {
               <span
                 key={d.label}
                 className={`text-[10px] font-medium ${
-                  i === months.length - 1
+                  i === selectedIdx || (selectedIdx === undefined && i === months.length - 1)
                     ? "text-[var(--primary)] font-bold"
                     : "text-[var(--tertiary-text)]"
                 }`}
