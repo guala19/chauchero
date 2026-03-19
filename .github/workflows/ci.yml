@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: chauchero
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: chauchero_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U chauchero"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://chauchero:testpass@localhost:5432/chauchero_test
+      SECRET_KEY: ci-test-secret-key-minimum-32-characters-long!!
+      GOOGLE_CLIENT_ID: test-client-id.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: test-client-secret
+      GOOGLE_REDIRECT_URI: http://localhost:8000/auth/google/callback
+      ENVIRONMENT: development
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: python -m pytest tests/ --ignore=tests/integration --ignore=tests/smoke -q --tb=short
+
+      - name: Run integration tests
+        run: |
+          alembic upgrade head
+          python -m pytest tests/integration/ -q --tb=short
+
+      - name: Coverage report
+        run: python -m pytest tests/ --ignore=tests/smoke --cov=app --cov-report=term-missing --cov-fail-under=80 -q
+
+  backend-smoke:
+    name: Smoke Tests
+    runs-on: ubuntu-latest
+    needs: backend-tests
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      DATABASE_URL: postgresql://fake:fake@localhost/fake
+      SECRET_KEY: ci-test-secret-key-minimum-32-characters-long!!
+      GOOGLE_CLIENT_ID: test-client-id.apps.googleusercontent.com
+      GOOGLE_CLIENT_SECRET: test-client-secret
+      GOOGLE_REDIRECT_URI: http://localhost:8000/auth/google/callback
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run smoke tests against production
+        run: python -m pytest tests/smoke/ -q --tb=short
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check & build
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://chauchero-production.up.railway.app
