@@ -30,12 +30,14 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
     );
     if (!res.ok) {
       const body = await res.json().catch(() => null);
-      throw new Error(body?.detail ?? "Sync falló");
+      const err = new Error(body?.detail ?? "Sync falló");
+      (err as any).httpStatus = res.status;
+      throw err;
     }
     const data = await res.json();
     setLastSyncAt(new Date().toISOString());
     router.refresh();
-    return data;
+    return data.stats ?? data;
   }, [router]);
 
   return (
@@ -46,6 +48,8 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
           onToggle={handleToggle}
           user={{ email: user.email, name: user.name }}
           onLogout={handleLogout}
+          onSync={handleSync}
+          lastSyncAt={lastSyncAt}
         />
         <div className="flex-1 flex flex-col min-w-0 min-h-dvh">
           <Header

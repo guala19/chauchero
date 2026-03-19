@@ -1,40 +1,55 @@
 import { cookies } from "next/headers";
-import { ArrowUpRight, ArrowDownLeft, TrendingUp } from "lucide-react";
-import { formatCLPCompact } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import MonthlyBarChart, { type MonthData } from "@/components/dashboard/MonthlyBarChart";
-import RecentTransactions from "@/components/dashboard/RecentTransactions";
-import ActivityDonut, { type DonutSegment } from "@/components/dashboard/ActivityDonut";
+import { formatCLP, formatCLPCompact } from "@/lib/format";
+import LineChart, { type MonthData } from "@/components/dashboard/LineChart";
+import CategoryCards, { type CategoryData } from "@/components/dashboard/CategoryCards";
+import RightPanel from "@/components/dashboard/RightPanel";
 import { fetchTransactions, type ApiTransaction } from "@/lib/api";
 
-// ─── Aggregation helpers ───────────────────────────────────────────────────────
+// ─── Category colors ─────────────────────────────────────────────────────────
 
-const CATEGORY_COLORS = ["#EF4444", "#818CF8", "#F0A500", "#22C55E", "#A855F7", "#EC4899"];
+const CAT_COLORS: Record<string, string> = {
+  supermercado: "orange",
+  alimentación: "orange",
+  transporte: "blue",
+  restaurante: "rose",
+  restaurantes: "rose",
+  transferencias: "blue",
+};
+
+// ─── Aggregation helpers ───────────────────────────────────────────────────────
 
 function computeStats(txs: ApiTransaction[]) {
   const now = new Date();
   const curY = now.getFullYear();
   const curM = now.getMonth();
+  const prevM = curM === 0 ? 11 : curM - 1;
+  const prevY = curM === 0 ? curY - 1 : curY;
 
   let gastoMes = 0, ingresosMes = 0, txMesCount = 0;
-  let totalGastos = 0, totalIngresos = 0;
+  let gastoMesAnterior = 0;
 
   for (const tx of txs) {
     const d = new Date(tx.transaction_date);
     const amt = Number(tx.amount);
-    const isThisMonth = d.getFullYear() === curY && d.getMonth() === curM;
+    const y = d.getFullYear();
+    const m = d.getMonth();
     const isCredit = tx.transaction_type === "transfer_credit";
 
-    if (isCredit) {
-      totalIngresos += amt;
-      if (isThisMonth) { ingresosMes += amt; txMesCount++; }
-    } else {
-      totalGastos += amt;
-      if (isThisMonth) { gastoMes += amt; txMesCount++; }
+    if (y === curY && m === curM) {
+      if (isCredit) { ingresosMes += amt; }
+      else { gastoMes += amt; }
+      txMesCount++;
+    }
+    if (y === prevY && m === prevM && !isCredit) {
+      gastoMesAnterior += amt;
     }
   }
 
-  return { gastoMes, ingresosMes, txMesCount, totalGastos, totalIngresos };
+  const variacion = gastoMesAnterior > 0
+    ? ((gastoMes - gastoMesAnterior) / gastoMesAnterior) * 100
+    : 0;
+
+  return { gastoMes, ingresosMes, txMesCount, variacion };
 }
 
 function computeMonthly(txs: ApiTransaction[]): MonthData[] {
@@ -48,7 +63,8 @@ function computeMonthly(txs: ApiTransaction[]): MonthData[] {
     const label = d.toLocaleDateString("es-CL", { month: "short" })
       .replace(".", "")
       .replace(/^\w/, (c) => c.toUpperCase())
-      .slice(0, 3);
+      .slice(0, 3)
+      .toUpperCase();
     const monthStr = d.toLocaleDateString("es-CL", { month: "short", year: "numeric" });
 
     const total = txs
@@ -68,102 +84,30 @@ function computeMonthly(txs: ApiTransaction[]): MonthData[] {
   return months;
 }
 
-function computeSegments(txs: ApiTransaction[]): { segments: DonutSegment[]; total: number } {
+function computeCategories(txs: ApiTransaction[]): CategoryData[] {
   const outflows = txs.filter((tx) => tx.transaction_type !== "transfer_credit");
   const total = outflows.reduce((sum, tx) => sum + Number(tx.amount), 0);
-  if (total === 0) return { segments: [], total: 0 };
+  if (total === 0) return [];
 
-  const groups: Record<string, number> = {};
+  const groups: Record<string, { amount: number; count: number }> = {};
   for (const tx of outflows) {
-    const key =
-      tx.category ??
-      (tx.transaction_type === "transfer_debit" ? "Transferencias" : "Gastos");
-    groups[key] = (groups[key] ?? 0) + Number(tx.amount);
+    const key = tx.category
+      ?? (tx.transaction_type === "transfer_debit" ? "Transferencias" : "Otros");
+    if (!groups[key]) groups[key] = { amount: 0, count: 0 };
+    groups[key].amount += Number(tx.amount);
+    groups[key].count++;
   }
 
-  const sorted = Object.entries(groups).sort((a, b) => b[1] - a[1]);
-  const segments: DonutSegment[] = sorted.map(([label, amount], i) => ({
-    color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
-    pct: (amount / total) * 100,
-    label,
-    amount,
-  }));
-
-  return { segments, total };
-}
-
-// ─── Stat cards ───────────────────────────────────────────────────────────────
-
-function GastoMesCard({ amount, count }: { amount: number; count: number }) {
-  const now = new Date();
-  const mes = now.toLocaleDateString("es-CL", { month: "long", year: "numeric" });
-  return (
-    <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="size-7 rounded-lg bg-primary/20 flex items-center justify-center">
-            <ArrowUpRight className="size-3.5 text-primary" />
-          </div>
-          <span className="text-[11px] text-primary/70 capitalize">{mes}</span>
-        </div>
-        <div className="flex items-end justify-between gap-2">
-          <p className="text-[26px] font-bold font-mono tabular-nums leading-none text-foreground">
-            {formatCLPCompact(amount)}
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0">
-            {count} transacción{count !== 1 ? "es" : ""}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TotalGastosCard({ amount, count }: { amount: number; count: number }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <div className="size-7 rounded-lg bg-ch-red-dim flex items-center justify-center">
-            <ArrowUpRight className="size-3.5 text-ch-red" />
-          </div>
-          <span className="text-[11px] text-muted-foreground">Total Gastos</span>
-        </div>
-        <div className="flex items-end justify-between gap-2">
-          <p className="text-[26px] font-bold font-mono tabular-nums text-foreground leading-none">
-            {formatCLPCompact(amount)}
-          </p>
-          <span className="text-[11px] text-muted-foreground shrink-0">
-            {count} transacc.
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function TotalIngresosCard({ amount, count }: { amount: number; count: number }) {
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="size-7 rounded-lg bg-ch-green-dim flex items-center justify-center">
-            <ArrowDownLeft className="size-3.5 text-ch-green" />
-          </div>
-          <span className="text-[11px] text-muted-foreground">Total Ingresos</span>
-        </div>
-        <div className="flex items-end justify-between gap-2">
-          <p className="text-[26px] font-bold text-ch-green leading-none">
-            {formatCLPCompact(amount)}
-          </p>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-ch-green shrink-0">
-            <TrendingUp className="size-3" />
-            {count} transacc.
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return Object.entries(groups)
+    .sort((a, b) => b[1].amount - a[1].amount)
+    .slice(0, 4)
+    .map(([name, data]) => ({
+      name,
+      amount: data.amount,
+      count: data.count,
+      percent: Math.round((data.amount / total) * 100),
+      color: CAT_COLORS[name.toLowerCase()] ?? "slate",
+    }));
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -177,39 +121,61 @@ export default async function DashboardPage() {
     try { transactions = await fetchTransactions(token); } catch { /* backend unavailable */ }
   }
 
-  const { gastoMes, ingresosMes: _ingresosMes, txMesCount, totalGastos, totalIngresos } =
-    computeStats(transactions);
+  const { gastoMes, ingresosMes, txMesCount, variacion } = computeStats(transactions);
   const monthlyData = computeMonthly(transactions);
-  const { segments, total: donutTotal } = computeSegments(transactions);
+  const categories = computeCategories(transactions);
+  const recentSix = transactions.slice(0, 6);
 
-  const outflowCount = transactions.filter((t) => t.transaction_type !== "transfer_credit").length;
-  const incomeCount  = transactions.filter((t) => t.transaction_type === "transfer_credit").length;
-  const recentFour   = transactions.slice(0, 4);
+  const now = new Date();
+  const mesLabel = now.toLocaleDateString("es-CL", { month: "long" });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {transactions.length > 0
-            ? `${transactions.length} transacciones · Banco de Chile`
-            : "Sincroniza para ver tus transacciones"}
-        </p>
+    <div className="xl:mr-[var(--right-panel-w)]" style={{ "--right-panel-w": "272px" } as React.CSSProperties}>
+      <div className="space-y-7">
+        {/* Hero Section */}
+        <section className="space-y-3">
+          <span className="text-muted-foreground text-[13px] font-medium tracking-wide capitalize">
+            Gastos de {mesLabel}
+          </span>
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h2
+              className="text-4xl md:text-5xl font-semibold tabular text-foreground"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              {formatCLP(gastoMes)}
+            </h2>
+            {variacion !== 0 && (
+              <div className="flex items-center gap-1 px-2.5 py-0.5 bg-[var(--success-bg)] text-[var(--success-text)] rounded-full text-[11px] font-semibold tabular">
+                <span>{variacion > 0 ? "↑" : "↓"}</span>
+                {Math.abs(variacion).toFixed(1).replace(".", ",")}% vs mes anterior
+              </div>
+            )}
+          </div>
+          <div>
+            {ingresosMes > 0 && (
+              <p className="text-[var(--success-text)] text-[13px] font-medium tabular">
+                Ingresos del mes: {formatCLP(ingresosMes)}
+              </p>
+            )}
+            <p className="text-muted-foreground text-[13px] mt-0.5">
+              {txMesCount > 0
+                ? `${txMesCount} transacciones`
+                : transactions.length > 0
+                ? `${transactions.length} transacciones totales`
+                : "Sincroniza para ver tus transacciones"}
+            </p>
+          </div>
+        </section>
+
+        {/* Line Chart */}
+        <LineChart months={monthlyData} />
+
+        {/* Category Cards */}
+        <CategoryCards categories={categories} />
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_272px] gap-5">
-        <div className="space-y-5 min-w-0">
-          <MonthlyBarChart months={monthlyData} />
-          <RecentTransactions transactions={recentFour} />
-        </div>
-
-        <div className="space-y-4">
-          <GastoMesCard amount={gastoMes} count={txMesCount} />
-          <TotalGastosCard amount={totalGastos} count={outflowCount} />
-          <TotalIngresosCard amount={totalIngresos} count={incomeCount} />
-          <ActivityDonut segments={segments} total={donutTotal} txCount={transactions.length} />
-        </div>
-      </div>
+      {/* Right Panel */}
+      <RightPanel transactions={recentSix} totalCount={transactions.length} />
     </div>
   );
 }

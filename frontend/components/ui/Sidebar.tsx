@@ -6,19 +6,18 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  UserCircle2,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NAV_ITEMS, APP } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatRelativeDate } from "@/lib/format";
 
 interface User {
   email: string;
@@ -30,6 +29,8 @@ interface SidebarProps {
   onToggle: () => void;
   user?: User | null;
   onLogout?: () => void;
+  onSync?: () => Promise<any>;
+  lastSyncAt?: string | null;
 }
 
 // ─── Logo Mark ────────────────────────────────────────────────────────────────
@@ -43,26 +44,23 @@ function LogoMark({ collapsed }: { collapsed: boolean }) {
         "overflow-hidden"
       )}
     >
-      <div className="relative size-8 shrink-0">
-        <div className="absolute inset-0 rounded-lg bg-primary opacity-20 blur-[6px]" />
-        <div className="relative size-8 rounded-lg bg-primary flex items-center justify-center">
-          <span className="font-mono font-bold text-primary-foreground text-sm leading-none">₡</span>
-        </div>
-      </div>
-
       <div
         className={cn(
           "flex flex-col min-w-0 transition-all duration-280 ease-in-out",
           collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
         )}
       >
-        <span className="text-sm font-semibold text-sidebar-foreground tracking-tight leading-tight">
-          {APP.name}
+        <span className="text-xl font-semibold text-sidebar-foreground tracking-tight leading-tight">
+          {APP.name}<span className="text-primary">.</span>
         </span>
         <span className="text-[10px] text-muted-foreground leading-tight">
           {APP.tagline}
         </span>
       </div>
+
+      {collapsed && (
+        <span className="text-lg font-bold text-primary leading-none">₡</span>
+      )}
     </div>
   );
 }
@@ -87,14 +85,10 @@ function NavLink({
         "group relative flex items-center gap-3 h-9 px-2.5 rounded-md",
         "text-sm font-medium transition-all duration-150 select-none",
         isActive
-          ? "bg-primary/10 text-primary"
-          : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+          ? "bg-sidebar-accent text-primary border-l-[3px] border-primary"
+          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
       )}
     >
-      {isActive && (
-        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary rounded-r-full" />
-      )}
-
       <Icon
         className={cn(
           "size-4 shrink-0 transition-colors duration-150",
@@ -132,57 +126,42 @@ function NavLink({
   return link;
 }
 
-// ─── User Footer ──────────────────────────────────────────────────────────────
+// ─── Bottom Section ──────────────────────────────────────────────────────────
 
-function UserFooter({
-  user,
+function SidebarFooter({
   collapsed,
   onLogout,
   onToggle,
+  onSync,
+  lastSyncAt,
 }: {
-  user?: User | null;
   collapsed: boolean;
   onLogout?: () => void;
   onToggle: () => void;
+  onSync?: () => Promise<any>;
+  lastSyncAt?: string | null;
 }) {
-  const initials = user?.name
-    ? user.name.charAt(0).toUpperCase()
-    : user?.email?.charAt(0).toUpperCase() ?? "U";
-
-  const displayName = user?.name ?? user?.email?.split("@")[0] ?? "Usuario";
-
   return (
-    <div className="shrink-0 border-t border-sidebar-border p-2 space-y-0.5">
-      {user && (
-        <div
-          className={cn(
-            "flex items-center gap-2.5 px-2.5 py-2 rounded-md",
-            "text-muted-foreground overflow-hidden",
-            collapsed && "justify-center"
-          )}
-        >
-          <Avatar className="size-7">
-            <AvatarFallback className="text-[10px] font-bold bg-secondary text-muted-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-
-          <div
-            className={cn(
-              "flex flex-col min-w-0 transition-all duration-280",
-              collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-            )}
+    <div className="shrink-0 border-t border-sidebar-border p-2 space-y-2">
+      {/* Sync button */}
+      {!collapsed && onSync && (
+        <div className="px-1">
+          <Button
+            onClick={() => onSync()}
+            className="w-full gap-2 h-9 text-xs font-semibold"
           >
-            <span className="text-[11px] font-medium text-sidebar-foreground truncate">
-              {displayName}
-            </span>
-            <span className="text-[10px] text-muted-foreground truncate">
-              {user.email}
-            </span>
-          </div>
+            <RefreshCw className="size-3.5" />
+            Sincronizar
+          </Button>
+          {lastSyncAt && (
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
+              Última sync: {formatRelativeDate(lastSyncAt)}
+            </p>
+          )}
         </div>
       )}
 
+      {/* Logout */}
       <Button
         variant="ghost"
         size="sm"
@@ -204,6 +183,7 @@ function UserFooter({
         </span>
       </Button>
 
+      {/* Collapse toggle */}
       <Button
         variant="ghost"
         size="sm"
@@ -214,12 +194,7 @@ function UserFooter({
           collapsed ? "justify-center" : "justify-between"
         )}
       >
-        {!collapsed && (
-          <span className="flex items-center gap-1.5">
-            <UserCircle2 className="size-3.5 opacity-50" />
-            Contraer
-          </span>
-        )}
+        {!collapsed && <span>Contraer</span>}
         {collapsed ? (
           <ChevronRight className="size-3.5" />
         ) : (
@@ -283,6 +258,8 @@ export default function Sidebar({
   onToggle,
   user,
   onLogout,
+  onSync,
+  lastSyncAt,
 }: SidebarProps) {
   const pathname = usePathname();
 
@@ -298,22 +275,14 @@ export default function Sidebar({
         )}
         style={
           {
-            "--sidebar-w": "240px",
+            "--sidebar-w": "204px",
             "--sidebar-collapsed-w": "60px",
           } as React.CSSProperties
         }
       >
         <LogoMark collapsed={collapsed} />
 
-        {!collapsed && (
-          <div className="px-4 pt-4 pb-1">
-            <span className="text-[9px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Menú
-            </span>
-          </div>
-        )}
-
-        <nav className="flex-1 py-2 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
+        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
           {NAV_ITEMS.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -330,11 +299,12 @@ export default function Sidebar({
           })}
         </nav>
 
-        <UserFooter
-          user={user}
+        <SidebarFooter
           collapsed={collapsed}
           onLogout={onLogout}
           onToggle={onToggle}
+          onSync={onSync}
+          lastSyncAt={lastSyncAt}
         />
       </aside>
 
