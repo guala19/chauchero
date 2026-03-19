@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
@@ -7,6 +8,8 @@ from ..models import User
 from ..core.config import settings
 from ..core.security import create_access_token, verify_token
 from ..db.queries.users import get_user_by_id, get_user_by_email, create_user, update_user_tokens
+
+logger = logging.getLogger(__name__)
 
 
 class AuthService:
@@ -57,6 +60,11 @@ class AuthService:
 
         user = get_user_by_email(self.db, email)
 
+        logger.info(
+            "OAuth callback for %s — refresh_token present: %s, user exists: %s",
+            email, credentials.refresh_token is not None, user is not None,
+        )
+
         if not user:
             user = create_user(
                 self.db,
@@ -65,6 +73,12 @@ class AuthService:
                 gmail_token_expires_at=credentials.expiry,
             )
         else:
+            # Always update tokens — even if refresh_token is None, log it
+            if not credentials.refresh_token:
+                logger.warning(
+                    "Google did not return refresh_token for %s — user may need to revoke and re-auth",
+                    email,
+                )
             update_user_tokens(
                 self.db,
                 user,
