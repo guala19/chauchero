@@ -146,6 +146,8 @@ class GmailService:
                     GMAIL_FETCH_TIMEOUT_SECONDS, len(results), len(message_ids),
                 )
 
+        return results
+
     def _fetch_one(self, message_id: str, service=None) -> Optional[EmailData]:
         if service is None:
             service = self.service
