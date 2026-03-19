@@ -81,8 +81,7 @@ jobs:
         run: pip install httpx pytest
 
       - name: Run smoke tests against production
-        working-directory: backend/tests/smoke
-        run: python -m pytest test_smoke.py -q --tb=short
+        run: python -m pytest backend/tests/smoke/test_smoke.py -q --tb=short
 
   frontend-build:
     name: Frontend Build
