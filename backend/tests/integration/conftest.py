@@ -40,27 +40,32 @@ os.environ["DATABASE_URL"] = _TEST_DB_URL
 @pytest.fixture(scope="session")
 def test_engine():
     """Create the test database and apply migrations once per session."""
-    # Connect to postgres default DB to create chauchero_test
-    admin_url = _BASE_URL.rsplit("/", 1)[0] + "/postgres"
-    admin_engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
-    with admin_engine.connect() as conn:
-        exists = conn.execute(
-            text("SELECT 1 FROM pg_database WHERE datname = 'chauchero_test'")
-        ).fetchone()
-        if not exists:
-            conn.execute(text("CREATE DATABASE chauchero_test"))
-    admin_engine.dispose()
+    _is_ci = os.environ.get("CI") == "true"
 
-    # Run alembic migrations on test DB
-    import subprocess, sys
-    result = subprocess.run(
-        [sys.executable, "-m", "alembic", "upgrade", "head"],
-        env={**os.environ, "DATABASE_URL": _TEST_DB_URL},
-        capture_output=True,
-        text=True,
-        cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
-    )
-    assert result.returncode == 0, f"Alembic failed:\n{result.stderr}"
+    if not _is_ci:
+        # Local dev: create test DB if it doesn't exist
+        admin_url = _BASE_URL.rsplit("/", 1)[0] + "/postgres"
+        admin_engine = create_engine(admin_url, isolation_level="AUTOCOMMIT")
+        with admin_engine.connect() as conn:
+            exists = conn.execute(
+                text("SELECT 1 FROM pg_database WHERE datname = 'chauchero_test'")
+            ).fetchone()
+            if not exists:
+                conn.execute(text("CREATE DATABASE chauchero_test"))
+        admin_engine.dispose()
+
+    if not _is_ci:
+        # Local dev: run alembic migrations
+        import subprocess, sys
+        result = subprocess.run(
+            [sys.executable, "-m", "alembic", "upgrade", "head"],
+            env={**os.environ, "DATABASE_URL": _TEST_DB_URL},
+            capture_output=True,
+            text=True,
+            cwd=os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        )
+        assert result.returncode == 0, f"Alembic failed:\n{result.stderr}"
+    # In CI: DB and migrations are handled by the workflow before pytest runs
 
     engine = create_engine(_TEST_DB_URL)
     yield engine
