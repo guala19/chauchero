@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { formatCLPCompact } from "@/lib/format";
+import { useState, useMemo } from "react";
+import { formatCLP, formatCLPCompact } from "@/lib/format";
 
 export interface MonthData {
   label: string;
@@ -15,9 +15,13 @@ function dataToPath(data: MonthData[], width: number, height: number) {
   const maxVal = Math.max(...data.map((d) => d.total), 1);
   const niceMax = Math.ceil(maxVal / 100000) * 100000 || 100000;
   const points = data.map((d, i) => ({
-    x: (i / (data.length - 1)) * width,
+    x: (i / Math.max(data.length - 1, 1)) * width,
     y: height - (d.total / niceMax) * height,
   }));
+
+  if (points.length < 2) {
+    return { linePath: "", areaPath: "", points, niceMax };
+  }
 
   let path = `M${points[0].x} ${points[0].y}`;
   for (let i = 1; i < points.length; i++) {
@@ -55,6 +59,8 @@ export default function LineChart({ months, selectedIdx }: { months: MonthData[]
     formatCLPCompact(niceMax * 0.25),
     "$ 0",
   ];
+
+  const activePoint = hoveredPoint ?? selectedIdx ?? null;
 
   return (
     <section className="bg-[var(--surface-container)] rounded-2xl p-6 ghost-border space-y-6">
@@ -106,21 +112,36 @@ export default function LineChart({ months, selectedIdx }: { months: MonthData[]
             </defs>
             <path d={areaPath} fill="url(#chartGradient)" />
             <path d={linePath} fill="none" stroke="#3A7D5E" strokeLinecap="round" strokeWidth={3} />
+
+            {/* Vertical indicator line for active point */}
+            {activePoint !== null && points[activePoint] && (
+              <line
+                x1={points[activePoint].x}
+                y1={0}
+                x2={points[activePoint].x}
+                y2={H}
+                stroke="#3A7D5E"
+                strokeWidth={1}
+                strokeDasharray="4 4"
+                opacity={0.3}
+              />
+            )}
+
             {points.map((p, i) => {
-              const isSelected = selectedIdx === i;
-              const isHovered = hoveredPoint === i;
+              const isActive = activePoint === i;
               const isLast = i === points.length - 1;
-              const isFilled = isSelected || isHovered || isLast;
+              const isFilled = isActive || isLast;
               return (
                 <circle
                   key={i}
                   cx={p.x}
                   cy={p.y}
-                  r={isHovered ? 6 : isFilled ? 5 : 4}
+                  r={isActive ? 6 : isFilled ? 5 : 4}
                   fill={isFilled ? "#3A7D5E" : "#ffffff"}
                   stroke="#3A7D5E"
                   strokeWidth={2}
-                  className="cursor-pointer transition-all"
+                  className="cursor-pointer"
+                  style={{ transition: "r 150ms ease, fill 150ms ease" }}
                   onMouseEnter={() => setHoveredPoint(i)}
                   onMouseLeave={() => setHoveredPoint(null)}
                 />
@@ -129,15 +150,16 @@ export default function LineChart({ months, selectedIdx }: { months: MonthData[]
           </svg>
 
           {/* Tooltip */}
-          {hoveredPoint !== null && (
+          {activePoint !== null && months[activePoint] && (
             <div
-              className="absolute -top-8 px-2 py-1 bg-[var(--on-surface)] text-white text-[10px] font-semibold tabular rounded-md pointer-events-none"
+              className="absolute -top-8 px-3 py-1.5 bg-[var(--on-surface)] text-white text-[10px] font-semibold tabular rounded-md pointer-events-none shadow-lg"
               style={{
-                left: `${(hoveredPoint / (months.length - 1)) * 100}%`,
+                left: `${(activePoint / Math.max(months.length - 1, 1)) * 100}%`,
                 transform: "translateX(-50%)",
               }}
             >
-              {formatCLPCompact(months[hoveredPoint].total)}
+              <span className="text-[8px] text-white/60 block">{months[activePoint].label}</span>
+              {formatCLP(months[activePoint].total)}
             </div>
           )}
 
@@ -146,8 +168,8 @@ export default function LineChart({ months, selectedIdx }: { months: MonthData[]
             {months.map((d, i) => (
               <span
                 key={d.label}
-                className={`text-[10px] font-medium ${
-                  i === selectedIdx || (selectedIdx === undefined && i === months.length - 1)
+                className={`text-[10px] font-medium transition-colors ${
+                  i === activePoint || (activePoint === null && i === (selectedIdx ?? months.length - 1))
                     ? "text-[var(--primary)] font-bold"
                     : "text-[var(--tertiary-text)]"
                 }`}
