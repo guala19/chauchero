@@ -46,7 +46,7 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
         lastSyncAt={lastSyncAt}
       />
 
-      <main className="ml-[204px] min-h-screen">
+      <main className="md:ml-[204px] xl:mr-[272px] min-h-screen">
         <Header
           onSync={handleSync}
           lastSyncAt={lastSyncAt}

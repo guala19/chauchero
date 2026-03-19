@@ -13,7 +13,9 @@ const CAT_CONFIG: Record<string, { color: string; icon: string }> = {
   transporte: { color: "blue", icon: "directions_car" },
   restaurante: { color: "rose", icon: "restaurant" },
   restaurantes: { color: "rose", icon: "restaurant" },
-  transferencias: { color: "blue", icon: "swap_horiz" },
+  transferencias: { color: "blue", icon: "send_money" },
+  gastos: { color: "orange", icon: "receipt_long" },
+  otros: { color: "slate", icon: "category" },
 };
 
 // ─── Aggregation helpers ───────────────────────────────────────────────────────
@@ -134,11 +136,11 @@ export default async function DashboardPage() {
   const mesLabel = now.toLocaleDateString("es-CL", { month: "long" });
 
   return (
-    <div className="mr-0 xl:mr-[272px]">
+    <div>
       <div className="space-y-8">
         {/* Hero Section */}
         <section className="space-y-4">
-          <span className="text-[var(--on-surface-variant)] text-sm font-medium tracking-wide capitalize">
+          <span className="text-[var(--on-surface-variant)] text-sm font-medium tracking-wide">
             Gastos de {mesLabel}
           </span>
           <div className="flex items-baseline gap-4">

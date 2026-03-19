@@ -88,9 +88,9 @@ export default function RightPanel({
               {totalCount} transacciones sincronizadas
             </p>
             <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-[var(--success-text)]" />
-              <p className="text-[11px] text-[var(--tertiary-text)]">
-                Conectado desde febrero 2026
+              <div className="w-1.5 h-1.5 rounded-full bg-[var(--success-text)] shrink-0" />
+              <p className="text-[11px] text-[var(--tertiary-text)] whitespace-nowrap">
+                Conectado desde feb 2026
               </p>
             </div>
           </div>

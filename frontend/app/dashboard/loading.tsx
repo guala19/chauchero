@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="mr-0 xl:mr-[272px]">
+    <div>
       <div className="space-y-8 animate-pulse">
         {/* Hero skeleton */}
         <div className="space-y-4">
