@@ -326,3 +326,47 @@ class TestTenpoParserRobustness:
             parser.parse(email)
         except Exception as exc:
             pytest.fail(f"Parser raised unexpected exception: {exc}")
+
+    def test_html_only_email_parses(self, parser):
+        """When body is empty but html_body has data, parser should still extract."""
+        html = (
+            "<html><body>"
+            "<p>Comercio:<br>STARBUCKS CHILE</p>"
+            "<p>Monto transacción:<br>$4.500</p>"
+            "<p>Fecha:<br>15-03-2026</p>"
+            "<p>Hora:<br>10:30:00</p>"
+            "</body></html>"
+        )
+        email = EmailData(
+            message_id="html-only-001",
+            sender="Tenpo <no-reply@tenpo.cl>",
+            subject="Comprobante de compra con tu tarjeta de credito",
+            body="",
+            html_body=html,
+            date=datetime.now(timezone.utc),
+        )
+        result = parser.parse(email)
+        assert result is not None
+        assert result.amount == Decimal("4500")
+
+    def test_plain_text_preferred_over_html(self, parser):
+        """When both body and html_body exist, plain text body is used (preserves newlines for regex)."""
+        plain = (
+            "Comercio:\nUBER *EATS\n"
+            "Monto transacción:\n$1.951\n"
+            "Fecha:\n17-08-2025\n"
+            "Hora:\n14:30:00\n"
+        )
+        html = "<html><body>Garbage that should not be used</body></html>"
+        email = EmailData(
+            message_id="both-001",
+            sender="Tenpo <no-reply@tenpo.cl>",
+            subject="Comprobante de compra con tu tarjeta de credito",
+            body=plain,
+            html_body=html,
+            date=datetime.now(timezone.utc),
+        )
+        result = parser.parse(email)
+        assert result is not None
+        assert result.amount == Decimal("1951")
+        assert "UBER" in result.description.upper()

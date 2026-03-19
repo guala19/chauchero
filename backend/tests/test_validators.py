@@ -88,6 +88,17 @@ class TestSanitizeAmount:
     def test_zero_stays_zero(self):
         assert TransactionValidator.sanitize_amount(Decimal("0")) == Decimal("0")
 
+    def test_preserves_decimal_precision(self):
+        """Ensure no float conversion occurs — Decimal stays exact."""
+        large = Decimal("99999999999.99")
+        result = TransactionValidator.sanitize_amount(large)
+        assert result == large
+        assert isinstance(result, Decimal)
+
+    def test_result_has_two_decimal_places(self):
+        result = TransactionValidator.sanitize_amount(Decimal("5000"))
+        assert result == Decimal("5000.00")
+
 
 # ── normalize_transaction_type ───────────────────────────────────────────────
 

@@ -351,3 +351,38 @@ class TestDebugEndpoints:
         }
         res = client.get("/transactions/debug/gmail-scan")
         assert res.status_code == 200
+
+    @patch("app.routers.transactions.app_settings")
+    def test_debug_gmail_query_blocked_in_production(self, mock_settings, client):
+        mock_settings.ENVIRONMENT = "production"
+        res = client.get("/transactions/debug/gmail-query")
+        assert res.status_code == 404
+
+    @patch("app.routers.transactions.app_settings")
+    def test_debug_gmail_scan_blocked_in_production(self, mock_settings, client):
+        mock_settings.ENVIRONMENT = "production"
+        res = client.get("/transactions/debug/gmail-scan")
+        assert res.status_code == 404
+
+
+class TestSyncErrorHandling:
+    @patch("app.routers.transactions.app_settings")
+    @patch("app.routers.transactions.TransactionService")
+    def test_500_hides_details_in_production(self, MockService, mock_settings, client):
+        mock_settings.ENVIRONMENT = "production"
+        MockService.return_value.sync_transactions_for_user.side_effect = RuntimeError(
+            "psycopg2.OperationalError: connection refused"
+        )
+        res = client.post("/transactions/sync")
+        assert res.status_code == 500
+        assert "psycopg2" not in res.json()["detail"]
+        assert "Please try again later" in res.json()["detail"]
+
+    @patch("app.routers.transactions.app_settings")
+    @patch("app.routers.transactions.TransactionService")
+    def test_500_shows_details_in_development(self, MockService, mock_settings, client):
+        mock_settings.ENVIRONMENT = "development"
+        MockService.return_value.sync_transactions_for_user.side_effect = RuntimeError("boom")
+        res = client.post("/transactions/sync")
+        assert res.status_code == 500
+        assert "boom" in res.json()["detail"]

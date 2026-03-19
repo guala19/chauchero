@@ -27,6 +27,10 @@ class TestBuildSearchQuery:
         query = GmailService.build_search_query(None)
         assert " OR " in query
 
+    def test_includes_tenpo_sender(self):
+        query = GmailService.build_search_query(None)
+        assert "from:no-reply@tenpo.cl" in query
+
     def test_is_static_method(self):
         # Can be called without an instance
         assert isinstance(GmailService.build_search_query(None), str)

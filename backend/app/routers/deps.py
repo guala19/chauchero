@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from ..core.database import get_db
@@ -7,11 +8,11 @@ from ..models import User
 
 
 def get_current_user(
-    authorization: str = Header(..., description="Bearer <token>"),
+    authorization: Optional[str] = Header(None, description="Bearer <token>"),
     db: Session = Depends(get_db),
 ) -> User:
     """Shared auth dependency — extracts and validates JWT from Authorization header."""
-    if not authorization.startswith("Bearer "):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid Authorization header format")
 
     token = authorization.removeprefix("Bearer ")

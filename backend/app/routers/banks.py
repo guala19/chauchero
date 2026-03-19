@@ -6,7 +6,16 @@ from ..schemas import BankInfo
 router = APIRouter(prefix="/banks", tags=["banks"])
 
 
-@router.get("/supported", response_model=List[BankInfo])
+@router.get(
+    "/supported",
+    response_model=List[BankInfo],
+    summary="Listar bancos soportados",
+    description=(
+        "Retorna la lista de bancos para los que existe un parser activo. "
+        "Cada banco incluye su nombre y los dominios de email desde los que envía notificaciones. "
+        "No requiere autenticación."
+    ),
+)
 async def list_supported_banks():
     return [
         BankInfo(

@@ -82,11 +82,8 @@ class TransactionValidator:
         Returns:
             Sanitized amount (absolute value, 2 decimals)
         """
-        # Always use absolute value
-        amount = abs(amount)
-        
-        # Round to 2 decimal places for currency
-        return Decimal(str(round(float(amount), 2)))
+        # Always use absolute value, round to 2 decimal places for currency
+        return abs(amount).quantize(Decimal('0.01'))
     
     @staticmethod
     def normalize_transaction_type(transaction_type: str) -> str:

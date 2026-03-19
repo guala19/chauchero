@@ -28,6 +28,7 @@ class GmailService:
     BANK_SENDERS = [
         "enviodigital@bancochile.cl",
         "serviciodetransferencias@bancochile.cl",
+        "no-reply@tenpo.cl",
     ]
 
     def __init__(self, credentials: Credentials):

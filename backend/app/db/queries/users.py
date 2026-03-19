@@ -88,10 +88,18 @@ def acquire_sync_lock(db: Session, user: User) -> bool:
 
 
 def release_sync_lock(db: Session, user: User) -> None:
-    """Release the sync lock. Always called in a finally block."""
+    """Release the sync lock. Always called in a finally block.
+    Uses raw SQL for consistency with acquire_sync_lock and to avoid
+    ORM state issues after rollbacks during email processing.
+    """
+    from sqlalchemy import text
+    db.execute(
+        text("UPDATE users SET is_syncing = false, sync_started_at = NULL WHERE id = :id"),
+        {"id": str(user.id)},
+    )
+    db.commit()
     user.is_syncing = False
     user.sync_started_at = None
-    db.commit()
 
 
 def clear_gmail_token(db: Session, user: User) -> None:

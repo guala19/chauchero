@@ -39,7 +39,7 @@ class TenpoParser(BankParser):
     subject_keywords = ["comprobante", "transferencia"]
 
     def parse(self, email_data: EmailData) -> Optional[ParsedTransaction]:
-        text = email_data.body or ""
+        text = email_data.body or self._extract_clean_text(email_data.html_body or "")
         subject = email_data.subject.lower()
 
         if "comprobante de compra" in subject:

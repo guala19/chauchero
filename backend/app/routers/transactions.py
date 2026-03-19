@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 from uuid import UUID
 from ..core.database import get_db
+from ..core.config import settings as app_settings
 from ..services.transaction_service import TransactionService, SyncCooldownError, SyncInProgressError
 from ..services.gmail_service import GmailAuthError
 from ..db.queries.users import release_sync_lock
@@ -75,7 +76,8 @@ def sync_transactions(
     except Exception as e:
         import structlog
         structlog.get_logger(__name__).error("Sync failed", error=str(e), exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+        detail = f"Sync failed: {str(e)}" if app_settings.ENVIRONMENT == "development" else "Sync failed. Please try again later."
+        raise HTTPException(status_code=500, detail=detail)
 
 
 @router.get(
@@ -92,6 +94,8 @@ def sync_transactions(
     },
 )
 def debug_gmail_query(current_user=Depends(get_current_user), db: Session = Depends(get_db)):
+    if app_settings.ENVIRONMENT == "production":
+        raise HTTPException(status_code=404, detail="Not found")
     return TransactionService(db).debug_gmail_query(current_user)
 
 
@@ -115,6 +119,8 @@ def debug_gmail_scan(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if app_settings.ENVIRONMENT == "production":
+        raise HTTPException(status_code=404, detail="Not found")
     try:
         return TransactionService(db).debug_gmail_scan(current_user, max_emails)
     except ValueError as e:
