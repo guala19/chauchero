@@ -53,6 +53,8 @@ jobs:
         run: python -m pytest tests/ --ignore=tests/integration --ignore=tests/smoke -q --tb=short
 
       - name: Run integration tests
+        env:
+          INTEGRATION_DATABASE_URL: postgresql://chauchero:testpass@localhost:5432/chauchero_test
         run: |
           alembic upgrade head
           python -m pytest tests/integration/ -q --tb=short

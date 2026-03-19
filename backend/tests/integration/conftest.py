@@ -27,7 +27,9 @@ if _env_file.exists():
             break
 
 if not _BASE_URL:
-    _BASE_URL = os.environ.get("DATABASE_URL", "")
+    # In CI, the unit conftest overwrites DATABASE_URL with a mock value.
+    # Use INTEGRATION_DATABASE_URL (set in CI workflow) as the real source.
+    _BASE_URL = os.environ.get("INTEGRATION_DATABASE_URL", "") or os.environ.get("DATABASE_URL", "")
 
 assert _BASE_URL, "DATABASE_URL not found — check backend/.env"
 
