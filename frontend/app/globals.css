@@ -204,12 +204,12 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
-    font-size: 66%;
     line-height: 1.5;
     min-height: 100dvh;
   }
   html {
     @apply font-sans;
+    font-size: 80%;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
