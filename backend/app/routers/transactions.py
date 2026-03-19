@@ -73,6 +73,8 @@ def sync_transactions(
             raise HTTPException(status_code=401, detail=str(e))
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import logging
+        logging.getLogger(__name__).error("Sync failed: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
 
 
