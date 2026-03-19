@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime, timezone
 import base64
-import logging
+import structlog
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FutureTimeoutError
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -9,7 +9,7 @@ from googleapiclient.errors import HttpError
 from ..parsers.base import EmailData
 from ..core.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 # Hard cap: a single sync request cannot run longer than this
 GMAIL_FETCH_TIMEOUT_SECONDS = 45

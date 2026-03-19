@@ -1,13 +1,16 @@
 import logging
+import structlog
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from .core.config import settings
+from .core.logging import setup_logging
 from .core.database import SessionLocal
 from .routers import auth, transactions, banks
 
-logger = logging.getLogger(__name__)
+setup_logging()
+logger = structlog.get_logger(__name__)
 
 # ── Sentry ────────────────────────────────────────────────────────────────────
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "development":

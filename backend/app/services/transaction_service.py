@@ -1,6 +1,6 @@
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
-import logging
+import structlog
 
 
 class SyncCooldownError(Exception):
@@ -29,7 +29,7 @@ from .gmail_service import GmailService, GmailAuthError
 from ..utils import TransactionValidator
 from ..core.config import settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class TransactionService:

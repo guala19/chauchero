@@ -1,4 +1,4 @@
-import logging
+import structlog
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
@@ -9,7 +9,7 @@ from ..core.config import settings
 from ..core.security import create_access_token, verify_token
 from ..db.queries.users import get_user_by_id, get_user_by_email, create_user, update_user_tokens
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class AuthService:
