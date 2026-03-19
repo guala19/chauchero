@@ -31,7 +31,7 @@ export default function RightPanel({
           </h3>
           <Link
             href="/dashboard/transactions"
-            className="text-[var(--on-surface-variant)] text-xs font-semibold hover:text-[var(--on-surface)] hover:underline transition-colors"
+            className="text-[#C4522A] text-xs font-semibold hover:text-[#9A3A1A] hover:underline transition-colors"
           >
             Ver todos
           </Link>
