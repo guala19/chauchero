@@ -1,19 +1,19 @@
 import { cookies } from "next/headers";
-import { formatCLP, formatCLPCompact } from "@/lib/format";
+import { formatCLP } from "@/lib/format";
 import LineChart, { type MonthData } from "@/components/dashboard/LineChart";
 import CategoryCards, { type CategoryData } from "@/components/dashboard/CategoryCards";
 import RightPanel from "@/components/dashboard/RightPanel";
 import { fetchTransactions, type ApiTransaction } from "@/lib/api";
 
-// ─── Category colors ─────────────────────────────────────────────────────────
+// ─── Category config ─────────────────────────────────────────────────────────
 
-const CAT_COLORS: Record<string, string> = {
-  supermercado: "orange",
-  alimentación: "orange",
-  transporte: "blue",
-  restaurante: "rose",
-  restaurantes: "rose",
-  transferencias: "blue",
+const CAT_CONFIG: Record<string, { color: string; icon: string }> = {
+  supermercado: { color: "orange", icon: "shopping_cart" },
+  alimentación: { color: "orange", icon: "shopping_cart" },
+  transporte: { color: "blue", icon: "directions_car" },
+  restaurante: { color: "rose", icon: "restaurant" },
+  restaurantes: { color: "rose", icon: "restaurant" },
+  transferencias: { color: "blue", icon: "swap_horiz" },
 };
 
 // ─── Aggregation helpers ───────────────────────────────────────────────────────
@@ -101,13 +101,17 @@ function computeCategories(txs: ApiTransaction[]): CategoryData[] {
   return Object.entries(groups)
     .sort((a, b) => b[1].amount - a[1].amount)
     .slice(0, 4)
-    .map(([name, data]) => ({
-      name,
-      amount: data.amount,
-      count: data.count,
-      percent: Math.round((data.amount / total) * 100),
-      color: CAT_COLORS[name.toLowerCase()] ?? "slate",
-    }));
+    .map(([name, data]) => {
+      const cfg = CAT_CONFIG[name.toLowerCase()] ?? { color: "slate", icon: "category" };
+      return {
+        name,
+        amount: data.amount,
+        count: data.count,
+        percent: Math.round((data.amount / total) * 100),
+        color: cfg.color,
+        icon: cfg.icon,
+      };
+    });
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -130,22 +134,22 @@ export default async function DashboardPage() {
   const mesLabel = now.toLocaleDateString("es-CL", { month: "long" });
 
   return (
-    <div className="xl:mr-[var(--right-panel-w)]" style={{ "--right-panel-w": "272px" } as React.CSSProperties}>
-      <div className="space-y-7">
+    <div className="mr-0 xl:mr-[272px]">
+      <div className="space-y-8">
         {/* Hero Section */}
-        <section className="space-y-3">
-          <span className="text-muted-foreground text-[13px] font-medium tracking-wide capitalize">
+        <section className="space-y-4">
+          <span className="text-[var(--on-surface-variant)] text-sm font-medium tracking-wide capitalize">
             Gastos de {mesLabel}
           </span>
-          <div className="flex items-baseline gap-3 flex-wrap">
+          <div className="flex items-baseline gap-4">
             <h2
-              className="text-5xl md:text-6xl font-semibold tabular text-foreground"
+              className="text-5xl font-semibold tabular text-[var(--on-surface)]"
               style={{ letterSpacing: "-0.02em" }}
             >
               {formatCLP(gastoMes)}
             </h2>
             {variacion !== 0 && (
-              <div className="flex items-center gap-1 px-2.5 py-0.5 bg-[var(--success-bg)] text-[var(--success-text)] rounded-full text-[11px] font-semibold tabular">
+              <div className="flex items-center gap-1.5 px-3 py-1 bg-[var(--success-bg)] text-[var(--success-text)] rounded-full text-xs font-semibold tabular">
                 <span>{variacion > 0 ? "↑" : "↓"}</span>
                 {Math.abs(variacion).toFixed(1).replace(".", ",")}% vs mes anterior
               </div>
@@ -153,11 +157,11 @@ export default async function DashboardPage() {
           </div>
           <div>
             {ingresosMes > 0 && (
-              <p className="text-[var(--success-text)] text-[13px] font-medium tabular">
+              <p className="text-[var(--success-text)] text-sm font-medium tabular">
                 Ingresos del mes: {formatCLP(ingresosMes)}
               </p>
             )}
-            <p className="text-muted-foreground text-[13px] mt-0.5">
+            <p className="text-[var(--tertiary-text)] text-sm mt-1">
               {txMesCount > 0
                 ? `${txMesCount} transacciones`
                 : transactions.length > 0

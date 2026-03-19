@@ -2,227 +2,48 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LogOut,
-  RefreshCw,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { NAV_ITEMS, APP } from "@/lib/constants";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import { formatRelativeDate } from "@/lib/format";
 
-interface User {
-  email: string;
-  name?: string | null;
-}
+// ─── Nav config (Material icon names) ────────────────────────────────────────
+
+const NAV = [
+  { label: "Inicio", icon: "home", href: "/dashboard" },
+  { label: "Transacciones", icon: "receipt_long", href: "/dashboard/transactions" },
+  { label: "Cuentas", icon: "account_balance_wallet", href: "/dashboard/accounts" },
+  { label: "Analíticas", icon: "leaderboard", href: "/dashboard/analytics" },
+  { label: "Configuración", icon: "settings", href: "/dashboard/settings" },
+];
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface SidebarProps {
-  collapsed: boolean;
-  onToggle: () => void;
-  user?: User | null;
+  collapsed?: boolean;
+  onToggle?: () => void;
+  user?: { email: string; name?: string | null } | null;
   onLogout?: () => void;
   onSync?: () => Promise<any>;
   lastSyncAt?: string | null;
 }
 
-// ─── Logo Mark ────────────────────────────────────────────────────────────────
-
-function LogoMark({ collapsed }: { collapsed: boolean }) {
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-3 h-[var(--header-h)] shrink-0",
-        "border-b border-sidebar-border px-4",
-        "overflow-hidden"
-      )}
-    >
-      <div
-        className={cn(
-          "flex flex-col min-w-0 transition-all duration-280 ease-in-out",
-          collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100 w-auto"
-        )}
-      >
-        <span className="text-xl font-semibold text-sidebar-foreground tracking-tight leading-tight">
-          {APP.name}<span className="text-primary">.</span>
-        </span>
-        <span className="text-[10px] text-muted-foreground leading-tight">
-          {APP.tagline}
-        </span>
-      </div>
-
-      {collapsed && (
-        <span className="text-lg font-bold text-primary leading-none">₡</span>
-      )}
-    </div>
-  );
-}
-
-// ─── Nav Item ─────────────────────────────────────────────────────────────────
-
-function NavLink({
-  item,
-  isActive,
-  collapsed,
-}: {
-  item: (typeof NAV_ITEMS)[number];
-  isActive: boolean;
-  collapsed: boolean;
-}) {
-  const Icon = item.icon;
-
-  const link = (
-    <Link
-      href={item.href}
-      className={cn(
-        "group relative flex items-center gap-3 h-9 px-2.5 rounded-md",
-        "text-sm font-medium transition-all duration-150 select-none",
-        isActive
-          ? "bg-sidebar-accent text-primary border-l-[3px] border-primary"
-          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-      )}
-    >
-      <Icon
-        className={cn(
-          "size-4 shrink-0 transition-colors duration-150",
-          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-        )}
-        strokeWidth={isActive ? 2.5 : 2}
-      />
-
-      <span
-        className={cn(
-          "truncate transition-all duration-280 ease-in-out",
-          collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-        )}
-      >
-        {item.label}
-      </span>
-
-      {"badge" in item && item.badge ? (
-        <Badge variant="default" className={cn("ml-auto shrink-0 text-[10px] px-1.5 py-0.5", collapsed && "hidden")}>
-          {item.badge}
-        </Badge>
-      ) : null}
-    </Link>
-  );
-
-  if (collapsed) {
-    return (
-      <Tooltip>
-        <TooltipTrigger render={<span />}>{link}</TooltipTrigger>
-        <TooltipContent side="right">{item.label}</TooltipContent>
-      </Tooltip>
-    );
-  }
-
-  return link;
-}
-
-// ─── Bottom Section ──────────────────────────────────────────────────────────
-
-function SidebarFooter({
-  collapsed,
-  onLogout,
-  onToggle,
-  onSync,
-  lastSyncAt,
-}: {
-  collapsed: boolean;
-  onLogout?: () => void;
-  onToggle: () => void;
-  onSync?: () => Promise<any>;
-  lastSyncAt?: string | null;
-}) {
-  return (
-    <div className="shrink-0 border-t border-sidebar-border p-2 space-y-2">
-      {/* Sync button */}
-      {!collapsed && onSync && (
-        <div className="px-1">
-          <Button
-            onClick={() => onSync()}
-            className="w-full gap-2 h-9 text-xs font-semibold"
-          >
-            <RefreshCw className="size-3.5" />
-            Sincronizar
-          </Button>
-          {lastSyncAt && (
-            <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-              Última sync: {formatRelativeDate(lastSyncAt)}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Logout */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onLogout}
-        className={cn(
-          "w-full justify-start gap-3 h-8 px-2.5 text-xs text-muted-foreground",
-          "hover:text-destructive hover:bg-ch-red-dim",
-          collapsed && "justify-center"
-        )}
-      >
-        <LogOut className="size-3.5 shrink-0" />
-        <span
-          className={cn(
-            "transition-all duration-280",
-            collapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
-          )}
-        >
-          Cerrar sesión
-        </span>
-      </Button>
-    </div>
-  );
-}
-
-// ─── Mobile Bottom Nav ────────────────────────────────────────────────────────
+// ─── Mobile Bottom Nav ───────────────────────────────────────────────────────
 
 function MobileBottomNav() {
   const pathname = usePathname();
-
   return (
-    <nav
-      className={cn(
-        "md:hidden fixed bottom-0 left-0 right-0 z-50",
-        "bg-card border-t border-border",
-        "flex items-center justify-around",
-        "px-2 pt-2 pb-safe"
-      )}
-    >
-      {NAV_ITEMS.slice(0, 4).map((item) => {
-        const Icon = item.icon;
-        const isActive =
-          pathname === item.href ||
-          (item.href !== "/dashboard" && pathname.startsWith(item.href));
-
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--surface-lowest)] border-t border-[var(--outline)] flex items-center justify-around px-2 pt-2 pb-safe">
+      {NAV.slice(0, 4).map((item) => {
+        const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
         return (
           <Link
             key={item.href}
             href={item.href}
-            className={cn(
-              "flex flex-col items-center gap-1 px-4 py-1.5 rounded-lg",
-              "transition-colors duration-150",
-              isActive
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
-            )}
+            className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-lg transition-colors ${
+              isActive ? "text-[var(--primary)]" : "text-[var(--tertiary-text)]"
+            }`}
           >
-            <Icon
-              className="size-5"
-              strokeWidth={isActive ? 2.5 : 2}
-            />
-            <span className="text-[9px] font-medium leading-none">
-              {item.label}
-            </span>
+            <MaterialIcon name={item.icon} className="text-[20px]" />
+            <span className="text-[9px] font-medium leading-none">{item.label}</span>
           </Link>
         );
       })}
@@ -232,59 +53,74 @@ function MobileBottomNav() {
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
 
-export default function Sidebar({
-  collapsed,
-  onToggle,
-  user,
-  onLogout,
-  onSync,
-  lastSyncAt,
-}: SidebarProps) {
+export default function Sidebar({ onLogout, onSync, lastSyncAt }: SidebarProps) {
   const pathname = usePathname();
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside
-        className={cn(
-          "hidden md:flex flex-col h-screen sticky top-0 z-30",
-          "bg-sidebar border-r border-sidebar-border",
-          "sidebar-transition shrink-0 overflow-hidden",
-          collapsed ? "w-[var(--sidebar-collapsed-w)]" : "w-[var(--sidebar-w)]"
-        )}
-        style={
-          {
-            "--sidebar-w": "204px",
-            "--sidebar-collapsed-w": "60px",
-          } as React.CSSProperties
-        }
-      >
-        <LogoMark collapsed={collapsed} />
+      <aside className="hidden md:flex fixed left-0 top-0 h-full w-[204px] border-r border-[var(--outline)] flex-col justify-between p-5 bg-[var(--surface-container)] z-50">
+        <div>
+          {/* Logo */}
+          <div className="mb-10">
+            <h1 className="text-2xl font-semibold text-[var(--on-surface)]">
+              Chauchero<span className="text-[var(--primary)]">.</span>
+            </h1>
+            <p className="text-[11px] text-[var(--tertiary-text)] font-medium mt-1">
+              Tu dinero, claro.
+            </p>
+          </div>
 
-        <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
-          {NAV_ITEMS.filter((item) => item.label !== "Debug").map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          {/* Navigation */}
+          <nav className="space-y-1">
+            {NAV.map((item) => {
+              const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={
+                    isActive
+                      ? "flex items-center gap-3 px-4 py-3 text-[var(--primary)] bg-[var(--surface)]/50 rounded-lg border-l-[3px] border-[var(--primary)] transition-colors"
+                      : "flex items-center gap-3 px-4 py-3 text-[var(--on-surface-variant)] hover:bg-[var(--surface)]/50 rounded-lg transition-colors"
+                  }
+                >
+                  <MaterialIcon name={item.icon} className="text-[22px]" />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
 
-            return (
-              <NavLink
-                key={item.href}
-                item={item}
-                isActive={isActive}
-                collapsed={collapsed}
-              />
-            );
-          })}
-        </nav>
+        {/* Bottom section */}
+        <div className="space-y-4">
+          {onSync && (
+            <div>
+              <button
+                onClick={() => onSync()}
+                className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--on-primary)] font-semibold py-2.5 rounded-lg text-sm hover:opacity-90 transition-opacity"
+              >
+                <MaterialIcon name="sync" className="text-[18px]" />
+                Sincronizar
+              </button>
+              {lastSyncAt && (
+                <p className="text-[10px] text-[var(--tertiary-text)] mt-2 text-center">
+                  Última sync: {formatRelativeDate(lastSyncAt)}
+                </p>
+              )}
+            </div>
+          )}
 
-        <SidebarFooter
-          collapsed={collapsed}
-          onLogout={onLogout}
-          onToggle={onToggle}
-          onSync={onSync}
-          lastSyncAt={lastSyncAt}
-        />
+          <div className="pt-4 border-t border-[var(--outline)]/50">
+            <button
+              onClick={onLogout}
+              className="flex items-center gap-3 px-4 py-2 text-[var(--on-surface-variant)] hover:text-[var(--primary)] text-sm transition-colors w-full"
+            >
+              <MaterialIcon name="logout" className="text-[20px]" />
+              Cerrar Sesión
+            </button>
+          </div>
+        </div>
       </aside>
 
       <MobileBottomNav />

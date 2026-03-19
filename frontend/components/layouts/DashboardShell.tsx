@@ -13,10 +13,8 @@ interface DashboardShellProps {
 
 export default function DashboardShell({ children, user }: DashboardShellProps) {
   const router = useRouter();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(user.last_sync_at);
-
-  const handleToggle = useCallback(() => setCollapsed((p) => !p), []);
 
   const handleLogout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -42,30 +40,24 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
 
   return (
     <SidebarContext.Provider value={{ collapsed }}>
-      <div className="flex min-h-dvh bg-background">
-        <Sidebar
-          collapsed={collapsed}
-          onToggle={handleToggle}
-          user={{ email: user.email, name: user.name }}
-          onLogout={handleLogout}
+      <Sidebar
+        onLogout={handleLogout}
+        onSync={handleSync}
+        lastSyncAt={lastSyncAt}
+      />
+
+      <main className="ml-[204px] min-h-screen">
+        <Header
           onSync={handleSync}
           lastSyncAt={lastSyncAt}
+          userName={user.name}
+          notificationCount={0}
+          avatarInitials={user.name.slice(0, 2).toUpperCase()}
         />
-        <div className="flex-1 flex flex-col min-w-0 min-h-dvh">
-          <Header
-            onSync={handleSync}
-            lastSyncAt={lastSyncAt}
-            userName={user.name}
-            notificationCount={0}
-            avatarInitials={user.name.slice(0, 2).toUpperCase()}
-          />
-          <main className="flex-1 w-full pb-20 md:pb-0 px-4 py-5 md:px-6 md:py-6">
-            <div className="mx-auto w-full max-w-6xl animate-fade-in">
-              {children}
-            </div>
-          </main>
+        <div className="p-6 space-y-8">
+          {children}
         </div>
-      </div>
+      </main>
     </SidebarContext.Provider>
   );
 }
