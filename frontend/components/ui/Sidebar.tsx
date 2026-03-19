@@ -98,7 +98,7 @@ export default function Sidebar({ onLogout, onSync, lastSyncAt }: SidebarProps) 
             <div>
               <button
                 onClick={() => onSync()}
-                className="w-full flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--on-primary)] font-semibold py-2.5 rounded-lg text-sm hover:opacity-90 transition-opacity"
+                className="w-full flex items-center justify-center gap-2 bg-[#C4522A] text-white font-semibold py-2.5 rounded-lg text-sm hover:bg-[#9A3A1A] transition-colors"
               >
                 <MaterialIcon name="sync" className="text-[18px]" />
                 Sincronizar

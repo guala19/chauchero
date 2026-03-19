@@ -138,7 +138,7 @@
 /* ─── Tailwind v4 — expose tokens as utilities ──────────────────────────── */
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), "Inter", system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), monospace;
 
   /* shadcn tokens */

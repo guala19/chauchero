@@ -47,7 +47,7 @@ export default function CategoryCards({ categories }: { categories: CategoryData
         </h3>
         <Link
           href="/dashboard/transactions"
-          className="text-[var(--primary)] text-sm font-semibold hover:underline underline-offset-4"
+          className="text-[var(--on-surface-variant)] text-sm font-semibold hover:text-[var(--on-surface)] hover:underline underline-offset-4 transition-colors"
         >
           Ver detalle
         </Link>
