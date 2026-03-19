@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  ChevronLeft,
-  ChevronRight,
   LogOut,
   RefreshCw,
 } from "lucide-react";
@@ -182,25 +180,6 @@ function SidebarFooter({
           Cerrar sesión
         </span>
       </Button>
-
-      {/* Collapse toggle */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onToggle}
-        className={cn(
-          "w-full h-8 px-2.5 text-xs text-muted-foreground",
-          "hover:text-foreground hover:bg-secondary",
-          collapsed ? "justify-center" : "justify-between"
-        )}
-      >
-        {!collapsed && <span>Contraer</span>}
-        {collapsed ? (
-          <ChevronRight className="size-3.5" />
-        ) : (
-          <ChevronLeft className="size-3.5" />
-        )}
-      </Button>
     </div>
   );
 }
@@ -283,7 +262,7 @@ export default function Sidebar({
         <LogoMark collapsed={collapsed} />
 
         <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto overflow-x-hidden">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter((item) => item.label !== "Debug").map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));

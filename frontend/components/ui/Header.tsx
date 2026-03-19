@@ -5,8 +5,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import {
   RefreshCw,
   Search,
-  Sun,
-  Moon,
   Check,
   AlertCircle,
   X,
@@ -16,15 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRelativeDate } from "@/lib/format";
-import { useTheme } from "@/components/providers/ThemeProvider";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +38,7 @@ interface HeaderProps {
 // ─── Page Titles ─────────────────────────────────────────────────────────────
 
 const PAGE_TITLES: Record<string, string> = {
-  "/dashboard":               "Dashboard",
+  "/dashboard":               "Inicio",
   "/dashboard/transactions":  "Transacciones",
   "/dashboard/accounts":      "Cuentas",
   "/dashboard/analytics":     "Analytics",
@@ -186,36 +176,6 @@ function SearchBar({ onSearch }: { onSearch?: (q: string) => void }) {
   );
 }
 
-// ─── Theme Toggle ─────────────────────────────────────────────────────────────
-
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-
-  return (
-    <Tooltip>
-      <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleTheme}
-            className="size-8 text-muted-foreground hover:text-foreground"
-          />
-        }
-      >
-        {theme === "dark" ? (
-          <Sun className="size-3.5" />
-        ) : (
-          <Moon className="size-3.5" />
-        )}
-      </TooltipTrigger>
-      <TooltipContent>
-        {theme === "dark" ? "Modo claro" : "Modo oscuro"}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 export default function Header({ onSync, lastSyncAt, onSearch, userName, notificationCount = 0, avatarInitials }: HeaderProps) {
@@ -325,41 +285,19 @@ export default function Header({ onSync, lastSyncAt, onSearch, userName, notific
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Right: Search, sync, notifications, theme, avatar */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Right: Search, notifications, avatar */}
+      <div className="flex items-center gap-3 shrink-0">
         <SearchBar onSearch={onSearch} />
 
-        {lastSyncAt && syncState === "idle" && (
-          <span className="hidden lg:block text-[10px] text-muted-foreground font-mono">
-            {formatRelativeDate(lastSyncAt)}
-          </span>
-        )}
-
-        <SyncButton
-          state={syncState}
-          stats={syncStats}
-          cooldownMinutes={cooldownMinutes}
-          onClick={handleButtonClick}
-        />
-
-        <Tooltip>
-          <TooltipTrigger
-            render={<Button variant="ghost" size="icon" className="relative size-8 text-muted-foreground hover:text-foreground" />}
-          >
-            <Bell className="size-3.5" />
-            {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 size-4 rounded-full bg-destructive text-white text-[9px] font-bold flex items-center justify-center leading-none">
-                {notificationCount > 9 ? "9+" : notificationCount}
-              </span>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>Notificaciones</TooltipContent>
-        </Tooltip>
-
-        <ThemeToggle />
+        <button className="p-2 text-muted-foreground hover:text-foreground transition-colors relative">
+          <Bell className="size-4" />
+          {notificationCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-[var(--surface)]" />
+          )}
+        </button>
 
         {avatarInitials && (
-          <div className="size-7 rounded-full flex items-center justify-center bg-[var(--success-text)] text-white text-[10px] font-bold select-none cursor-pointer hover:opacity-90 transition-opacity">
+          <div className="size-8 rounded-full flex items-center justify-center bg-[var(--success-text)] text-white text-xs font-bold select-none cursor-pointer hover:opacity-90 transition-opacity">
             {avatarInitials}
           </div>
         )}

@@ -139,7 +139,7 @@ export default async function DashboardPage() {
           </span>
           <div className="flex items-baseline gap-3 flex-wrap">
             <h2
-              className="text-4xl md:text-5xl font-semibold tabular text-foreground"
+              className="text-5xl md:text-6xl font-semibold tabular text-foreground"
               style={{ letterSpacing: "-0.02em" }}
             >
               {formatCLP(gastoMes)}

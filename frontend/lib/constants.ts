@@ -19,7 +19,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   {
-    label: "Dashboard",
+    label: "Inicio",
     href: "/dashboard",
     icon: LayoutDashboard,
   },
@@ -34,7 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CreditCard,
   },
   {
-    label: "Analytics",
+    label: "Analíticas",
     href: "/dashboard/analytics",
     icon: TrendingUp,
   },
