@@ -60,6 +60,8 @@ jobs:
           python -m pytest tests/integration/ -q --tb=short
 
       - name: Coverage report
+        env:
+          INTEGRATION_DATABASE_URL: postgresql://chauchero:testpass@localhost:5432/chauchero_test
         run: python -m pytest tests/ --ignore=tests/smoke --cov=app --cov-report=term-missing --cov-fail-under=80 -q
 
   backend-smoke:
