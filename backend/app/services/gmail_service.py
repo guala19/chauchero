@@ -34,6 +34,10 @@ class GmailService:
         self.credentials = credentials
         self.service = build('gmail', 'v1', credentials=credentials)
 
+    def _build_service(self):
+        """Build a new Gmail API service — needed for thread-safe parallel fetching."""
+        return build('gmail', 'v1', credentials=self.credentials)
+
     # ── Public ────────────────────────────────────────────────────────────
 
     def fetch_bank_emails(
@@ -104,10 +108,22 @@ class GmailService:
 
     def _fetch_messages_parallel(self, message_ids: List[str]) -> List[EmailData]:
         results: List[EmailData] = []
-        workers = min(settings.GMAIL_FETCH_WORKERS, 10)
+        workers = min(settings.GMAIL_FETCH_WORKERS, 5)
+
+        # Pre-build one Gmail API service per worker thread (httplib2 is NOT thread-safe)
+        import threading
+        thread_local = threading.local()
+
+        def get_thread_service():
+            if not hasattr(thread_local, 'service'):
+                thread_local.service = self._build_service()
+            return thread_local.service
+
+        def fetch_with_thread_service(mid: str) -> Optional[EmailData]:
+            return self._fetch_one(mid, get_thread_service())
 
         with ThreadPoolExecutor(max_workers=workers) as pool:
-            futures = {pool.submit(self._fetch_one, mid): mid for mid in message_ids}
+            futures = {pool.submit(fetch_with_thread_service, mid): mid for mid in message_ids}
             try:
                 for future in as_completed(futures, timeout=GMAIL_FETCH_TIMEOUT_SECONDS):
                     try:
@@ -115,7 +131,6 @@ class GmailService:
                         if email is not None:
                             results.append(email)
                     except GmailAuthError:
-                        # Token revoked/expired mid-fetch — propagate immediately
                         raise
                     except FutureTimeoutError:
                         mid = futures[future]
@@ -131,11 +146,11 @@ class GmailService:
                     GMAIL_FETCH_TIMEOUT_SECONDS, len(results), len(message_ids),
                 )
 
-        return results
-
-    def _fetch_one(self, message_id: str) -> Optional[EmailData]:
+    def _fetch_one(self, message_id: str, service=None) -> Optional[EmailData]:
+        if service is None:
+            service = self.service
         try:
-            msg = self.service.users().messages().get(
+            msg = service.users().messages().get(
                 userId='me',
                 id=message_id,
                 format='full',
