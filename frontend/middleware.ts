@@ -14,7 +14,10 @@ function decodeJwtPayload(token: string): { sub: string; email: string; exp: num
   try {
     const part = token.split(".")[1];
     if (!part) return null;
-    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    // base64url → base64 + padding
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const json = atob(padded);
     return JSON.parse(json);
   } catch {
     return null;
@@ -40,6 +43,15 @@ function setCookies(response: NextResponse, token: string) {
 // ── Middleware ────────────────────────────────────────────────────────────────
 
 export async function middleware(request: NextRequest) {
+  try {
+    return await handleRequest(request);
+  } catch {
+    // Never let middleware crash — pass through on any unexpected error
+    return NextResponse.next();
+  }
+}
+
+async function handleRequest(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
   // ── Auth callback — set cookie and redirect ────────────────────────────
@@ -82,27 +94,30 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Token is near-expiry (< 10 min) or expired (< 24h) — refresh it
-    const expiredTooLong = expiresIn < -(24 * 60 * 60); // expired > 24h ago
-    if (expiredTooLong) {
-      // Grace period exceeded — force re-login
+    // Token expired more than 24h ago — force re-login
+    if (expiresIn < -(24 * 60 * 60)) {
       const response = NextResponse.redirect(new URL("/", request.url));
       response.cookies.delete("auth-token");
       response.cookies.delete("ch-session");
       return response;
     }
 
-    // Try to refresh the token
+    // Token is near-expiry (< 10 min) or recently expired — try refresh
     try {
       const endpoint = expiresIn <= 0
         ? `${BACKEND_URL}/auth/refresh-expired`
         : `${BACKEND_URL}/auth/refresh`;
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(5000),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (res.ok) {
         const data = await res.json();
@@ -111,21 +126,19 @@ export async function middleware(request: NextRequest) {
         return response;
       }
     } catch {
-      // Refresh failed (network error, timeout) — if token is still valid, let it through
-      if (expiresIn > 0) {
-        return NextResponse.next();
-      }
+      // Refresh failed — graceful degradation
+    }
+
+    // If token is still valid (just near-expiry), let it through
+    if (expiresIn > 0) {
+      return NextResponse.next();
     }
 
     // Token expired and refresh failed — force re-login
-    if (expiresIn <= 0) {
-      const response = NextResponse.redirect(new URL("/", request.url));
-      response.cookies.delete("auth-token");
-      response.cookies.delete("ch-session");
-      return response;
-    }
-
-    return NextResponse.next();
+    const response = NextResponse.redirect(new URL("/", request.url));
+    response.cookies.delete("auth-token");
+    response.cookies.delete("ch-session");
+    return response;
   }
 
   return NextResponse.next();
