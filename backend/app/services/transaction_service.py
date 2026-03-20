@@ -28,6 +28,7 @@ from ..db.queries.users import update_last_sync, acquire_sync_lock, release_sync
 from .gmail_service import GmailService, GmailAuthError
 from ..utils import TransactionValidator
 from ..core.config import settings
+from .category_service import categorize_transaction
 
 logger = structlog.get_logger(__name__)
 
@@ -146,6 +147,31 @@ class TransactionService:
             return None
         return update_transaction(self.db, transaction, **fields)
 
+    # ── Categorization ─────────────────────────────────────────────────────
+
+    def categorize_uncategorized(self, user: User) -> dict:
+        """Re-categorize all transactions that have no category set."""
+        transactions = (
+            self.db.query(Transaction)
+            .join(Transaction.account)
+            .filter(
+                Transaction.account.has(user_id=user.id),
+                Transaction.category.is_(None),
+            )
+            .all()
+        )
+
+        updated = 0
+        for txn in transactions:
+            new_category = categorize_transaction(txn.description, txn.transaction_type)
+            txn.category = new_category
+            updated += 1
+
+        if updated:
+            self.db.commit()
+
+        return {"total_uncategorized": len(transactions), "categorized": updated}
+
     # ── Debug ─────────────────────────────────────────────────────────────
 
     def debug_gmail_query(self, user: User) -> dict:
@@ -229,6 +255,10 @@ class TransactionService:
                 last_4_digits=parsed.last_4_digits,
             )
 
+            category = parsed.category or categorize_transaction(
+                sanitized_description, normalized_type
+            )
+
             inserted = upsert_transaction(
                 self.db,
                 account_id=account.id,
@@ -236,7 +266,7 @@ class TransactionService:
                 transaction_date=parsed.transaction_date,
                 description=sanitized_description,
                 transaction_type=normalized_type,
-                category=parsed.category,
+                category=category,
                 email_id=email.message_id,
                 email_subject=email.subject,
                 parser_confidence=parsed.confidence,

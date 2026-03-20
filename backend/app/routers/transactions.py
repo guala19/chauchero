@@ -6,6 +6,7 @@ from ..core.database import get_db
 from ..core.config import settings as app_settings
 from ..services.transaction_service import TransactionService, SyncCooldownError, SyncInProgressError
 from ..services.gmail_service import GmailAuthError
+from ..services.category_service import CATEGORIES
 from ..db.queries.users import release_sync_lock
 from ..schemas import (
     TransactionResponse,
@@ -78,6 +79,35 @@ def sync_transactions(
         structlog.get_logger(__name__).error("Sync failed", error=str(e), exc_info=True)
         detail = f"Sync failed: {str(e)}" if app_settings.ENVIRONMENT == "development" else "Sync failed. Please try again later."
         raise HTTPException(status_code=500, detail=detail)
+
+
+@router.get(
+    "/categories",
+    response_model=List[str],
+    summary="Listar categorías disponibles",
+    description="Retorna la lista de categorías válidas para transacciones.",
+)
+def list_categories():
+    return CATEGORIES
+
+
+@router.post(
+    "/categorize",
+    summary="Categorizar transacciones sin categoría",
+    description=(
+        "Aplica categorización automática a todas las transacciones del usuario "
+        "que no tienen categoría asignada. No sobreescribe categorías existentes."
+    ),
+    responses={
+        401: {"description": "Token JWT inválido o expirado"},
+    },
+)
+def categorize_transactions(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    result = TransactionService(db).categorize_uncategorized(current_user)
+    return result
 
 
 @router.get(
