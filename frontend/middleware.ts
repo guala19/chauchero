@@ -83,7 +83,8 @@ async function handleRequest(request: NextRequest) {
 
     const payload = decodeJwtPayload(token);
     if (!payload?.exp) {
-      return NextResponse.redirect(new URL("/", request.url));
+      // Can't decode JWT in Edge Runtime — let the layout (Node.js) handle auth
+      return NextResponse.next();
     }
 
     const now = Date.now() / 1000;
