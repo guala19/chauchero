@@ -1,8 +1,9 @@
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import TransactionsList from "@/components/dashboard/TransactionsList";
 import { fetchTransactions } from "@/lib/api";
 
-export default async function TransactionsPage() {
+async function TransactionsContent() {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth-token")?.value;
 
@@ -34,4 +35,19 @@ export default async function TransactionsPage() {
   const transactions = await fetchTransactions(token);
 
   return <TransactionsList transactions={transactions} />;
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-5">
+        <h1 className="text-[28px] font-black tracking-tighter text-[var(--on-surface)]">Transacciones</h1>
+        <div className="bg-[var(--surface-container)] rounded-xl p-20 flex flex-col items-center gap-4">
+          <p className="text-sm text-[var(--tertiary-text)]">Cargando...</p>
+        </div>
+      </div>
+    }>
+      <TransactionsContent />
+    </Suspense>
+  );
 }

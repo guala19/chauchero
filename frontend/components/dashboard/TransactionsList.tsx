@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatCLP } from "@/lib/format";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import TransactionDrawer, { type Transaction } from "@/components/ui/TransactionDrawer";
@@ -127,10 +128,23 @@ const ALL_CATEGORIES = [
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TransactionsList({ transactions }: { transactions: ApiTransaction[] }) {
+  const searchParams = useSearchParams();
   const monthOptions = useMemo(() => getMonthOptions(), []);
+
+  const initialMonth = useMemo(() => {
+    const p = searchParams.get("month");
+    if (p !== null) { const n = parseInt(p, 10); if (n >= 0 && n <= 12) return n; }
+    return getCurrentMonthIdx();
+  }, [searchParams]);
+
+  const initialCategory = useMemo(() => {
+    const p = searchParams.get("category");
+    return p && ALL_CATEGORIES.includes(p) ? p : null;
+  }, [searchParams]);
+
   const [typeFilter, setTypeFilter] = useState<FilterType>("gastos");
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(getCurrentMonthIdx);
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(initialMonth);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(initialCategory);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ApiTransaction | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(() =>
