@@ -105,9 +105,13 @@ const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "S
 function getMonthOptions() {
   const now = new Date();
   const currentYear = now.getFullYear();
-  // Ene to Dic, all same year
-  return MONTH_LABELS.map((label, i) => ({ year: currentYear, month: i, label }));
+  const months: { year: number; month: number; label: string }[] =
+    MONTH_LABELS.map((label, i) => ({ year: currentYear, month: i, label }));
+  months.push({ year: -1, month: -1, label: "Todo" });
+  return months;
 }
+
+const TODO_IDX = 12; // index of "Todo" option
 
 function getCurrentMonthIdx() {
   return new Date().getMonth(); // 0=Ene, 11=Dic
@@ -136,11 +140,12 @@ export default function TransactionsList({ transactions }: { transactions: ApiTr
   const selectedMonth = monthOptions[selectedMonthIdx];
 
   const monthFiltered = useMemo(() => {
+    if (selectedMonthIdx === TODO_IDX) return transactions;
     return transactions.filter((tx) => {
       const d = new Date(tx.transaction_date);
       return d.getFullYear() === selectedMonth.year && d.getMonth() === selectedMonth.month;
     });
-  }, [transactions, selectedMonth]);
+  }, [transactions, selectedMonth, selectedMonthIdx]);
 
   const typeFiltered = useMemo(() => {
     if (typeFilter === "ingresos") return monthFiltered.filter((tx) => tx.transaction_type === "transfer_credit");
