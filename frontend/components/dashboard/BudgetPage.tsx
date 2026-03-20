@@ -69,6 +69,7 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
   const [budgets, setBudgets] = useState<BudgetEntry[]>(initialBudgets);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editCategory, setEditCategory] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newBudget, setNewBudget] = useState("");
 
@@ -115,6 +116,7 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
 
   function handleDeleteBudget(category: string) {
     updateBudgets(budgets.filter((b) => b.category !== category));
+    setDeleteConfirm(null);
   }
 
   // ── Real spending data ──────────────────────────────────────────────────
@@ -180,6 +182,26 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
     const savings = totalBudget - projected;
     return { total: projected, savings, progress };
   }, [totalSpent, totalBudget, available, yearVal, monthIdx, isCurrentMonth, now]);
+
+  // ── Yappa history (savings per month) ───────────────────────────────────
+
+  const yappaHistory = useMemo(() => {
+    const history: { month: number; year: number; amount: number; isCurrent: boolean }[] = [];
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(yearVal, monthIdx - i, 1);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const monthTxsForYappa = transactions.filter((tx) => {
+        if (tx.transaction_type === "transfer_credit") return false;
+        const td = new Date(tx.transaction_date);
+        return td.getFullYear() === y && td.getMonth() === m;
+      });
+      const spent = monthTxsForYappa.reduce((sum, tx) => sum + Number(tx.amount), 0);
+      const saved = Math.max(0, totalBudget - spent);
+      history.push({ month: m, year: y, amount: saved, isCurrent: i === 0 });
+    }
+    return history;
+  }, [transactions, yearVal, monthIdx, totalBudget]);
 
   // ── Available categories to add ─────────────────────────────────────────
 
@@ -250,34 +272,33 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
             )}
           </div>
 
-          {/* Summary Card */}
-          <div className="bg-[#1C0F0A] p-6 rounded-2xl text-white relative overflow-hidden">
+          {/* Tu Yappa */}
+          <div className="bg-[#E8906E] p-6 rounded-2xl text-white relative overflow-hidden">
             <div className="flex justify-between items-start mb-4 relative z-10">
-              <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Resumen del mes</span>
-              <MaterialIcon name="insights" className="text-[20px] opacity-80" />
+              <span className="text-[10px] font-bold uppercase tracking-widest opacity-90">Tu Yappa</span>
+              <MaterialIcon name="savings" filled className="text-[20px]" />
             </div>
             <div className="relative z-10 mb-6">
-              <h3 className="text-3xl font-bold tabular tracking-tighter">$ {fmt(totalSpent)}</h3>
-              <p className="text-[10px] opacity-80 mt-1">Total gastado en {MONTHS_FULL[monthIdx]}</p>
+              <h3 className="text-3xl font-bold tabular tracking-tighter">
+                $ {fmt(available > 0 ? available : 0)}
+              </h3>
+              <p className="text-[10px] opacity-80 mt-1">Ahorro disponible este mes</p>
             </div>
             <div className="w-full h-[1px] bg-white/20 mb-6 relative z-10" />
-            <div className="flex flex-col gap-3 relative z-10">
-              <div className="flex justify-between text-[11px]">
-                <span className="opacity-70">Transacciones</span>
-                <span className="font-bold tabular">{monthTxs.filter((tx) => tx.transaction_type !== "transfer_credit").length}</span>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <span className="opacity-70">Categorías activas</span>
-                <span className="font-bold tabular">{budgets.length}</span>
-              </div>
-              <div className="flex justify-between text-[11px]">
-                <span className="opacity-70">Promedio por gasto</span>
-                <span className="font-bold tabular">
-                  $ {fmt(monthTxs.filter((tx) => tx.transaction_type !== "transfer_credit").length > 0
-                    ? Math.round(totalSpent / monthTxs.filter((tx) => tx.transaction_type !== "transfer_credit").length)
-                    : 0)}
-                </span>
-              </div>
+            <div className="flex flex-col gap-1.5 relative z-10">
+              {yappaHistory.map((h) => (
+                <div
+                  key={`${h.month}-${h.year}`}
+                  className={`flex justify-between text-[11px] px-3 ${
+                    h.isCurrent
+                      ? "font-bold bg-[#9A3A1A]/40 py-1.5 rounded-lg"
+                      : "font-medium opacity-80"
+                  }`}
+                >
+                  <span>{MONTHS_FULL[h.month]}</span>
+                  <span className="tabular">+$ {fmt(h.amount)}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -294,13 +315,13 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
                   className="bg-[#F2EDE6] p-4 rounded-xl h-[150px] flex flex-col justify-between text-left hover:bg-[#EBE5DD] transition-colors group relative"
                   style={cat.isExceeded ? { borderTop: "2px solid rgba(196,82,42,0.2)" } : undefined}
                 >
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteBudget(cat.category); }}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-white/60"
+                  {/* Delete button — subtle, top-right corner */}
+                  <div
+                    onClick={(e) => { e.stopPropagation(); setDeleteConfirm(cat.category); }}
+                    className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-40 hover:!opacity-100 transition-opacity cursor-pointer p-0.5"
                   >
-                    <MaterialIcon name="close" className="text-[14px] text-[#6B5C54]" />
-                  </button>
+                    <MaterialIcon name="close" className="text-[12px] text-[#6B5C54]" />
+                  </div>
 
                   <div className="flex justify-between items-start">
                     <MaterialIcon name={cat.icon} className="text-[24px]" filled={cat.isExceeded}
@@ -494,6 +515,28 @@ export default function BudgetPage({ transactions, initialBudgets }: Props) {
               <button onClick={handleAddBudget} disabled={!newCategory || !newBudget}
                 className="flex-1 py-2.5 text-sm font-bold text-white bg-[#1C0F0A] rounded-lg hover:bg-[#2C1F1A] transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
                 Agregar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white rounded-2xl p-6 w-[360px] shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-[#1C0F0A] mb-2">Eliminar categoría</h3>
+            <p className="text-sm text-[#6B5C54] mb-6">
+              ¿Estás seguro de que quieres eliminar <span className="font-bold text-[#1C0F0A]">{deleteConfirm}</span> de tus presupuestos?
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-2.5 text-sm font-bold text-[#6B5C54] bg-[#F2EDE6] rounded-lg hover:bg-[#E5DDD5] transition-colors">
+                Cancelar
+              </button>
+              <button onClick={() => handleDeleteBudget(deleteConfirm)}
+                className="flex-1 py-2.5 text-sm font-bold text-white bg-[#C4522A] rounded-lg hover:bg-[#A84420] transition-colors">
+                Eliminar
               </button>
             </div>
           </div>
