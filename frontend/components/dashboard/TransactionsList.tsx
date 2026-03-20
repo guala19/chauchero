@@ -105,14 +105,12 @@ const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "S
 function getMonthOptions() {
   const now = new Date();
   const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-  // Show all 12 months, starting from current month going back
-  const options: { year: number; month: number; label: string }[] = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(currentYear, currentMonth - i, 1);
-    options.push({ year: d.getFullYear(), month: d.getMonth(), label: MONTH_LABELS[d.getMonth()] });
-  }
-  return options;
+  // Ene to Dic, all same year
+  return MONTH_LABELS.map((label, i) => ({ year: currentYear, month: i, label }));
+}
+
+function getCurrentMonthIdx() {
+  return new Date().getMonth(); // 0=Ene, 11=Dic
 }
 
 // ─── All categories (matching backend) ──────────────────────────────────────
@@ -127,7 +125,7 @@ const ALL_CATEGORIES = [
 export default function TransactionsList({ transactions }: { transactions: ApiTransaction[] }) {
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [typeFilter, setTypeFilter] = useState<FilterType>("gastos");
-  const [selectedMonthIdx, setSelectedMonthIdx] = useState(monthOptions.length - 1);
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(getCurrentMonthIdx);
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ApiTransaction | null>(null);
@@ -244,24 +242,6 @@ export default function TransactionsList({ transactions }: { transactions: ApiTr
               Ingresos
             </button>
           </div>
-        </div>
-
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2">
-          <button onClick={() => { setCategoryFilter(null); setPage(1); }}
-            className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${
-              !categoryFilter ? "bg-[var(--on-surface)] text-white" : "bg-[var(--surface-container)] text-[var(--on-surface-variant)] hover:bg-[var(--on-surface)] hover:text-white"
-            }`}>
-            Todas
-          </button>
-          {ALL_CATEGORIES.map((cat) => (
-            <button key={cat} onClick={() => { setCategoryFilter(categoryFilter === cat ? null : cat); setPage(1); }}
-              className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${
-                categoryFilter === cat ? "bg-[var(--on-surface)] text-white" : "bg-[var(--surface-container)] text-[var(--on-surface-variant)] hover:bg-[var(--on-surface)] hover:text-white"
-              }`}>
-              {cat}
-            </button>
-          ))}
         </div>
 
         {/* Transaction List */}
