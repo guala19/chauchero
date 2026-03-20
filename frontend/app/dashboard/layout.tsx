@@ -7,7 +7,7 @@ import DashboardShell from "@/components/layouts/DashboardShell";
 
 interface JwtPayload {
   sub: string;
-  email: string;
+  email?: string;
   exp: number;
 }
 
@@ -17,8 +17,8 @@ function decodeJwt(token: string): JwtPayload | null {
     if (!part) return null;
     const json = Buffer.from(part, "base64url").toString("utf-8");
     const payload = JSON.parse(json) as JwtPayload;
-    // Expiry is enforced by middleware (auto-refresh) — here we only need the payload
-    if (!payload.email) return null;
+    // Require at least a user ID
+    if (!payload.sub) return null;
     return payload;
   } catch {
     return null;
@@ -47,12 +47,14 @@ export default async function DashboardLayout({
   const payload = decodeJwt(token);
   if (!payload) redirect("/");
 
+  const email = payload.email ?? "user@chauchero.app";
+
   return (
     <DashboardShell
       user={{
         id: payload.sub,
-        email: payload.email,
-        name: nameFromEmail(payload.email),
+        email,
+        name: nameFromEmail(email),
         last_sync_at: null, // fetched lazily by the header after mount
       }}
     >

@@ -73,7 +73,7 @@ def google_callback(
 )
 def get_me(current_user=Depends(get_current_user)):
     from ..core.security import create_access_token
-    token = create_access_token(data={"sub": str(current_user.id)})
+    token = create_access_token(data={"sub": str(current_user.id), "email": current_user.email})
     return TokenResponse(
         access_token=token,
         token_type="bearer",
@@ -98,7 +98,7 @@ def refresh_token(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_token = create_access_token(data={"sub": str(current_user.id)})
+    new_token = create_access_token(data={"sub": str(current_user.id), "email": current_user.email})
     return TokenResponse(
         access_token=new_token,
         token_type="bearer",
@@ -143,7 +143,7 @@ def refresh_expired_token(
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    new_token = create_access_token(data={"sub": str(user.id)})
+    new_token = create_access_token(data={"sub": str(user.id), "email": user.email})
     return TokenResponse(
         access_token=new_token,
         token_type="bearer",
