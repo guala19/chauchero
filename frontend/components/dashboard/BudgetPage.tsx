@@ -8,8 +8,24 @@ function fmt(n: number): string {
   return Math.abs(n).toLocaleString("es-CL");
 }
 
+const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
 export default function BudgetPage() {
-  const [month] = useState("Marzo 2026");
+  const now = new Date();
+  const [monthIdx, setMonthIdx] = useState(now.getMonth());
+  const [yearVal, setYearVal] = useState(now.getFullYear());
+  const isCurrentMonth = monthIdx === now.getMonth() && yearVal === now.getFullYear();
+  const month = `${MONTHS[monthIdx]} ${yearVal}`;
+
+  function prevMonth() {
+    if (monthIdx === 0) { setMonthIdx(11); setYearVal((y) => y - 1); }
+    else setMonthIdx((m) => m - 1);
+  }
+  function nextMonth() {
+    if (monthIdx === 11) { setMonthIdx(0); setYearVal((y) => y + 1); }
+    else setMonthIdx((m) => m + 1);
+  }
+
   const d = budgetData;
   const pct = Math.round((d.totalSpent / d.totalBudget) * 100);
   const available = d.totalBudget - d.totalSpent;
@@ -127,7 +143,7 @@ export default function BudgetPage() {
           })}
 
           {/* Add Button */}
-          <button className="bg-transparent border-2 border-dashed border-[#8B716A]/30 hover:border-[#C4522A] transition-all rounded-xl h-[150px] flex flex-col items-center justify-center group">
+          <button onClick={() => alert("Próximamente: podrás agregar categorías personalizadas")} className="bg-transparent border-2 border-dashed border-[#8B716A]/30 hover:border-[#C4522A] transition-all rounded-xl h-[150px] flex flex-col items-center justify-center group">
             <MaterialIcon name="add_circle" className="text-3xl text-[#8B716A]/50 group-hover:text-[#C4522A] mb-1" />
             <span className="text-[10px] font-bold text-[#6B5C54] uppercase tracking-widest group-hover:text-[#1C0F0A]">Agregar</span>
           </button>
@@ -145,13 +161,15 @@ export default function BudgetPage() {
           <div className="flex items-center justify-between bg-white/40 p-4 rounded-xl">
             <div className="flex flex-col">
               <h4 className="text-lg font-bold text-[#1C0F0A]">{month}</h4>
-              <span className="text-[9px] font-bold text-[#C4522A] bg-[#C4522A]/10 px-2 py-0.5 rounded mt-1 w-fit uppercase">Mes activo</span>
+              {isCurrentMonth && (
+                <span className="text-[9px] font-bold text-[#C4522A] bg-[#C4522A]/10 px-2 py-0.5 rounded mt-1 w-fit uppercase">Mes activo</span>
+              )}
             </div>
             <div className="flex gap-1">
-              <button className="p-1 text-[#6B5C54] hover:text-[#1C0F0A]">
+              <button onClick={prevMonth} className="p-1 text-[#6B5C54] hover:text-[#1C0F0A]">
                 <MaterialIcon name="chevron_left" className="text-[24px]" />
               </button>
-              <button className="p-1 text-[#6B5C54] hover:text-[#1C0F0A]">
+              <button onClick={nextMonth} className="p-1 text-[#6B5C54] hover:text-[#1C0F0A]">
                 <MaterialIcon name="chevron_right" className="text-[24px]" />
               </button>
             </div>

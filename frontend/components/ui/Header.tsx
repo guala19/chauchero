@@ -1,7 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
 interface HeaderProps {
@@ -17,7 +18,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/dashboard": "Inicio",
   "/dashboard/transactions": "Transacciones",
   "/dashboard/accounts": "Cuentas",
-  "/dashboard/analytics": "Analíticas",
+  "/dashboard/analytics": "Presupuestos",
   "/dashboard/settings": "Configuración",
 };
 
@@ -36,8 +37,9 @@ function buildDateStr(): string {
   }).format(new Date());
 }
 
-export default function Header({ userName, notificationCount = 0, avatarInitials }: HeaderProps) {
+export default function Header({ userName, avatarInitials }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const [greeting, setGreeting] = useState("");
@@ -63,6 +65,12 @@ export default function Header({ userName, notificationCount = 0, avatarInitials
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, []);
+
+  const handleSearchSubmit = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && search.trim()) {
+      router.push(`/dashboard/transactions?q=${encodeURIComponent(search.trim())}`);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[var(--surface)]/80 backdrop-blur-md border-b border-[var(--outline)] px-8 py-4 flex items-center justify-between">
@@ -95,24 +103,20 @@ export default function Header({ userName, notificationCount = 0, avatarInitials
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={handleSearchSubmit}
             placeholder="Buscar movimientos..."
             className="w-full pl-10 pr-4 py-2 bg-[var(--surface-lowest)] border-none ring-1 ring-[var(--outline)] focus:ring-[var(--primary)] rounded-lg text-sm text-[var(--on-surface)] placeholder:text-[var(--tertiary-text)] outline-none transition-shadow"
           />
         </div>
 
-        {/* Notifications */}
-        <button className="p-2 text-[var(--on-surface-variant)] hover:text-[var(--primary)] transition-colors relative">
-          <MaterialIcon name="notifications" />
-          {notificationCount > 0 && (
-            <span className="absolute top-2 right-2 w-2 h-2 bg-[var(--primary)] rounded-full border-2 border-[var(--surface)]" />
-          )}
-        </button>
-
-        {/* Avatar */}
+        {/* Avatar → links to accounts */}
         {avatarInitials && (
-          <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--success-text)] text-white text-xs font-bold ml-1 select-none cursor-pointer hover:opacity-90 transition-opacity">
+          <Link
+            href="/dashboard/accounts"
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--success-text)] text-white text-xs font-bold ml-1 select-none cursor-pointer hover:opacity-90 transition-opacity"
+          >
             {avatarInitials}
-          </div>
+          </Link>
         )}
       </div>
     </header>

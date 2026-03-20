@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatCLP } from "@/lib/format";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 
@@ -37,6 +38,7 @@ const COLOR_MAP: Record<string, { iconBg: string; iconText: string; barFill: str
 };
 
 export default function CategoryCards({ categories }: { categories: CategoryData[] }) {
+  const router = useRouter();
   if (categories.length === 0) return null;
 
   return (
@@ -58,6 +60,7 @@ export default function CategoryCards({ categories }: { categories: CategoryData
           return (
             <div
               key={cat.name}
+              onClick={() => router.push("/dashboard/transactions")}
               className="p-5 bg-[var(--surface-container)] rounded-2xl ghost-border space-y-4 hover:scale-[1.02] transition-transform cursor-pointer"
             >
               <div

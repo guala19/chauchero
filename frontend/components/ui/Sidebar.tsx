@@ -9,7 +9,6 @@ const NAV = [
   { label: "Inicio", icon: "home", href: "/dashboard" },
   { label: "Transacciones", icon: "account_balance_wallet", href: "/dashboard/transactions" },
   { label: "Presupuestos", icon: "pie_chart", href: "/dashboard/analytics" },
-  { label: "Tendencias", icon: "trending_up", href: "/dashboard/settings" },
   { label: "Configuración", icon: "settings", href: "/dashboard/accounts" },
 ];
 

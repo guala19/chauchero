@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatCLP, formatDate } from "@/lib/format";
 import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import type { ApiTransaction } from "@/lib/api";
@@ -21,6 +22,8 @@ export default function RightPanel({
   transactions: ApiTransaction[];
   totalCount: number;
 }) {
+  const router = useRouter();
+
   return (
     <aside className="hidden xl:flex fixed right-0 top-0 h-full w-[272px] bg-[var(--surface-container)] border-l border-[var(--outline)] p-6 flex-col gap-10 overflow-y-auto z-50">
       {/* Recent Movements */}
@@ -47,6 +50,7 @@ export default function RightPanel({
               return (
                 <div
                   key={tx.id}
+                  onClick={() => router.push("/dashboard/transactions")}
                   className="flex items-center gap-4 group cursor-pointer p-2 -mx-2 rounded-lg hover:bg-[var(--surface)] transition-colors"
                 >
                   <div className={`w-2 h-2 rounded-full shrink-0 ${dotColor(tx.transaction_type, tx.category)}`} />
