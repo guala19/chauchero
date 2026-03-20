@@ -6,27 +6,58 @@ import { MaterialIcon } from "@/components/ui/MaterialIcon";
 import TransactionDrawer, { type Transaction } from "@/components/ui/TransactionDrawer";
 import type { ApiTransaction } from "@/lib/api";
 
-// ─── Category inference ──────────────────────────────────────────────────────
+// ─── Category styling ───────────────────────────────────────────────────────
 
-const CATEGORY_RULES: { pattern: RegExp; name: string; icon: string; dot: string; pillBg: string; pillText: string }[] = [
-  { pattern: /supermercado|lider|jumbo|unimarc|santa isabel|tottus|acuenta/i, name: "Supermercado", icon: "shopping_cart", dot: "#B87A3D", pillBg: "#F5EDE0", pillText: "#8B5E2A" },
-  { pattern: /restaurant|restoran|starbucks|mcdonalds|burger|pizza|sushi|cafe|coffe/i, name: "Restaurantes", icon: "restaurant", dot: "#B86B7A", pillBg: "#F5E8EC", pillText: "#8C4A5A" },
-  { pattern: /uber|cabify|metro|transantiago|bip!|copec|shell|enex|gasolina|estacion/i, name: "Transporte", icon: "commute", dot: "#5B8FA8", pillBg: "#E8F0F4", pillText: "#3D6B82" },
-  { pattern: /farmacia|ahumada|cruz verde|salcobrand/i, name: "Farmacia", icon: "local_pharmacy", dot: "#7BA8A2", pillBg: "#E8F2F0", pillText: "#4D7A74" },
-  { pattern: /netflix|spotify|youtube|disney|hbo|amazon prime|apple/i, name: "Suscripciones", icon: "subscriptions", dot: "#8B7BA8", pillBg: "#EFEBF4", pillText: "#635580" },
-  { pattern: /rappi|pedidosya|uber eats|cornershop/i, name: "Delivery", icon: "delivery_dining", dot: "#B87A3D", pillBg: "#F5EDE0", pillText: "#8B5E2A" },
-  { pattern: /enel|aguas|engie|vtr|movistar|claro|wom|entel/i, name: "Servicios", icon: "bolt", dot: "#9E8E86", pillBg: "#F2EDE6", pillText: "#6B5C54" },
+const CATEGORY_STYLES: Record<string, { icon: string; dot: string; pillBg: string; pillText: string }> = {
+  "Supermercado":    { icon: "shopping_cart",    dot: "#B87A3D", pillBg: "#F5EDE0", pillText: "#8B5E2A" },
+  "Alimentación":    { icon: "restaurant",       dot: "#B86B7A", pillBg: "#F5E8EC", pillText: "#8C4A5A" },
+  "Delivery":        { icon: "delivery_dining",  dot: "#B87A3D", pillBg: "#F5EDE0", pillText: "#8B5E2A" },
+  "Transporte":      { icon: "commute",          dot: "#5B8FA8", pillBg: "#E8F0F4", pillText: "#3D6B82" },
+  "Entretenimiento": { icon: "subscriptions",    dot: "#8B7BA8", pillBg: "#EFEBF4", pillText: "#635580" },
+  "Salud":           { icon: "local_pharmacy",   dot: "#7BA8A2", pillBg: "#E8F2F0", pillText: "#4D7A74" },
+  "Servicios":       { icon: "bolt",             dot: "#9E8E86", pillBg: "#F2EDE6", pillText: "#6B5C54" },
+  "Combustible":     { icon: "local_gas_station",dot: "#A8885B", pillBg: "#F2ECE0", pillText: "#7A6340" },
+  "Educación":       { icon: "school",           dot: "#5B8FA8", pillBg: "#E8F0F4", pillText: "#3D6B82" },
+  "Compras":         { icon: "shopping_bag",     dot: "#A87B5B", pillBg: "#F2E8E0", pillText: "#7A5A40" },
+  "Transferencia":   { icon: "send_money",       dot: "#7BA88B", pillBg: "#E8F2EC", pillText: "#4D7A5D" },
+  "Otros":           { icon: "receipt_long",     dot: "#9E8E86", pillBg: "#F2EDE6", pillText: "#6B5C54" },
+};
+
+const DEFAULT_STYLE = CATEGORY_STYLES["Otros"];
+
+// Fallback regex rules for transactions without backend category
+const FALLBACK_RULES: { pattern: RegExp; name: string }[] = [
+  { pattern: /supermercado|lider|jumbo|unimarc|santa isabel|tottus|acuenta/i, name: "Supermercado" },
+  { pattern: /restaurant|restoran|starbucks|mcdonalds|burger|pizza|sushi|cafe|coffe/i, name: "Alimentación" },
+  { pattern: /rappi|pedidosya|uber eats|cornershop/i, name: "Delivery" },
+  { pattern: /uber|cabify|metro|transantiago|bip!/i, name: "Transporte" },
+  { pattern: /netflix|spotify|youtube|disney|hbo|amazon prime/i, name: "Entretenimiento" },
+  { pattern: /farmacia|ahumada|cruz verde|salcobrand/i, name: "Salud" },
+  { pattern: /enel|aguas|engie|vtr|movistar|claro|wom|entel/i, name: "Servicios" },
+  { pattern: /copec|shell|enex|gasolina|estacion/i, name: "Combustible" },
 ];
 
 function inferCategory(tx: ApiTransaction) {
-  if (tx.transaction_type === "transfer_credit")
-    return { name: "Transferencias", icon: "payments", dot: "#7BA88B", pillBg: "#E8F2EC", pillText: "#4D7A5D" };
-  if (tx.transaction_type === "transfer_debit")
-    return { name: "Transferencias", icon: "send_money", dot: "#7BA88B", pillBg: "#E8F2EC", pillText: "#4D7A5D" };
-  for (const rule of CATEGORY_RULES) {
-    if (rule.pattern.test(tx.description)) return rule;
+  // Use backend category if available
+  if (tx.category) {
+    const style = CATEGORY_STYLES[tx.category] ?? DEFAULT_STYLE;
+    return { name: tx.category, ...style };
   }
-  return { name: "Otros", icon: "receipt_long", dot: "#9E8E86", pillBg: "#F2EDE6", pillText: "#6B5C54" };
+
+  // Transfer types
+  if (tx.transaction_type === "transfer_credit" || tx.transaction_type === "transfer_debit") {
+    return { name: "Transferencia", ...CATEGORY_STYLES["Transferencia"] };
+  }
+
+  // Fallback regex matching
+  for (const rule of FALLBACK_RULES) {
+    if (rule.pattern.test(tx.description)) {
+      const style = CATEGORY_STYLES[rule.name] ?? DEFAULT_STYLE;
+      return { name: rule.name, ...style };
+    }
+  }
+
+  return { name: "Otros", ...DEFAULT_STYLE };
 }
 
 function formatTxTime(dateStr: string): string {
@@ -66,66 +97,87 @@ function pageNumbers(current: number, total: number): (number | "…")[] {
 }
 
 type FilterType = "gastos" | "ingresos";
-type TimeFilter = "7D" | "1M" | "3M" | "6M" | "1A" | "Todo";
-const TIME_OPTIONS: TimeFilter[] = ["7D", "1M", "3M", "6M", "1A", "Todo"];
-const QUICK_FILTERS = ["Supermercados", "Delivery", "Suscripciones", "Sin Categoría", "Altos montos"];
+
+// ─── Month helpers ──────────────────────────────────────────────────────────
+
+const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+function getMonthOptions() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  // Show all 12 months, starting from current month going back
+  const options: { year: number; month: number; label: string }[] = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(currentYear, currentMonth - i, 1);
+    options.push({ year: d.getFullYear(), month: d.getMonth(), label: MONTH_LABELS[d.getMonth()] });
+  }
+  return options;
+}
+
+// ─── All categories (matching backend) ──────────────────────────────────────
+
+const ALL_CATEGORIES = [
+  "Supermercado", "Alimentación", "Delivery", "Transporte", "Entretenimiento",
+  "Salud", "Servicios", "Combustible", "Educación", "Compras", "Transferencia", "Otros",
+];
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TransactionsList({ transactions }: { transactions: ApiTransaction[] }) {
+  const monthOptions = useMemo(() => getMonthOptions(), []);
   const [typeFilter, setTypeFilter] = useState<FilterType>("gastos");
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>("Todo");
-  const [quickFilter, setQuickFilter] = useState<string | null>(null);
+  const [selectedMonthIdx, setSelectedMonthIdx] = useState(monthOptions.length - 1);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<ApiTransaction | null>(null);
   const [notes, setNotes] = useState<Record<string, string>>(() =>
     Object.fromEntries(transactions.filter((t) => t.notes).map((t) => [t.id, t.notes!]))
   );
 
-  const timeFiltered = useMemo(() => {
-    const now = new Date();
-    const cutoff = new Date();
-    if (timeFilter === "7D") cutoff.setDate(now.getDate() - 7);
-    else if (timeFilter === "1M") cutoff.setMonth(now.getMonth() - 1);
-    else if (timeFilter === "3M") cutoff.setMonth(now.getMonth() - 3);
-    else if (timeFilter === "6M") cutoff.setMonth(now.getMonth() - 6);
-    else if (timeFilter === "1A") cutoff.setFullYear(now.getFullYear() - 1);
-    else return transactions;
-    return transactions.filter((tx) => new Date(tx.transaction_date) >= cutoff);
-  }, [transactions, timeFilter]);
+  const selectedMonth = monthOptions[selectedMonthIdx];
+
+  const monthFiltered = useMemo(() => {
+    return transactions.filter((tx) => {
+      const d = new Date(tx.transaction_date);
+      return d.getFullYear() === selectedMonth.year && d.getMonth() === selectedMonth.month;
+    });
+  }, [transactions, selectedMonth]);
 
   const typeFiltered = useMemo(() => {
-    if (typeFilter === "ingresos") return timeFiltered.filter((tx) => tx.transaction_type === "transfer_credit");
-    return timeFiltered.filter((tx) => tx.transaction_type !== "transfer_credit");
-  }, [timeFiltered, typeFilter]);
+    if (typeFilter === "ingresos") return monthFiltered.filter((tx) => tx.transaction_type === "transfer_credit");
+    return monthFiltered.filter((tx) => tx.transaction_type !== "transfer_credit");
+  }, [monthFiltered, typeFilter]);
 
   const filtered = useMemo(() => {
-    if (!quickFilter) return typeFiltered;
-    if (quickFilter === "Altos montos") return typeFiltered.filter((tx) => Number(tx.amount) >= 50000);
-    if (quickFilter === "Sin Categoría") return typeFiltered.filter((tx) => inferCategory(tx).name === "Otros");
-    const nameMap: Record<string, string> = { "Supermercados": "Supermercado" };
-    const target = nameMap[quickFilter] ?? quickFilter;
-    return typeFiltered.filter((tx) => inferCategory(tx).name === target);
-  }, [typeFiltered, quickFilter]);
+    if (!categoryFilter) return typeFiltered;
+    return typeFiltered.filter((tx) => {
+      const cat = tx.category || inferCategory(tx).name;
+      return cat === categoryFilter;
+    });
+  }, [typeFiltered, categoryFilter]);
 
   const kpis = useMemo(() => {
     let gastos = 0, ingresos = 0;
-    for (const tx of timeFiltered) {
+    for (const tx of monthFiltered) {
       if (tx.transaction_type === "transfer_credit") ingresos += Number(tx.amount);
       else gastos += Number(tx.amount);
     }
     return { gastos, ingresos, balance: ingresos - gastos };
-  }, [timeFiltered]);
+  }, [monthFiltered]);
 
   const categorySummary = useMemo(() => {
-    const outflows = timeFiltered.filter((tx) => tx.transaction_type !== "transfer_credit");
+    const outflows = monthFiltered.filter((tx) => tx.transaction_type !== "transfer_credit");
     const total = outflows.reduce((sum, tx) => sum + Number(tx.amount), 0);
     if (total === 0) return [];
     const groups: Record<string, number> = {};
-    for (const tx of outflows) groups[inferCategory(tx).name] = (groups[inferCategory(tx).name] ?? 0) + Number(tx.amount);
+    for (const tx of outflows) {
+      const name = tx.category || inferCategory(tx).name;
+      groups[name] = (groups[name] ?? 0) + Number(tx.amount);
+    }
     return Object.entries(groups).sort((a, b) => b[1] - a[1]).slice(0, 4)
       .map(([name, amount]) => ({ name, percent: Math.round((amount / total) * 100) }));
-  }, [timeFiltered]);
+  }, [monthFiltered]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -172,17 +224,17 @@ export default function TransactionsList({ transactions }: { transactions: ApiTr
           </div>
         </div>
 
-        {/* Filters Bar */}
-        <div className="flex items-center justify-between">
-          <div className="flex bg-[var(--surface-container)] p-1 rounded-md text-xs font-bold text-[var(--on-surface-variant)]">
-            {TIME_OPTIONS.map((f) => (
-              <button key={f} onClick={() => { setTimeFilter(f); setPage(1); }}
-                className={`px-4 py-1.5 transition-colors ${timeFilter === f ? "bg-[var(--surface)] text-[var(--on-surface)] rounded-sm" : "hover:text-[var(--on-surface)]"}`}>
-                {f}
+        {/* Month Selector */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex bg-[var(--surface-container)] p-1 rounded-md text-xs font-bold text-[var(--on-surface-variant)] overflow-x-auto">
+            {monthOptions.map((m, i) => (
+              <button key={`${m.year}-${m.month}`} onClick={() => { setSelectedMonthIdx(i); setPage(1); }}
+                className={`px-3 py-1.5 transition-colors whitespace-nowrap ${i === selectedMonthIdx ? "bg-[var(--surface)] text-[var(--on-surface)] rounded-sm" : "hover:text-[var(--on-surface)]"}`}>
+                {m.label}
               </button>
             ))}
           </div>
-          <div className="flex bg-[var(--surface-container)] p-1 rounded-md">
+          <div className="flex bg-[var(--surface-container)] p-1 rounded-md shrink-0">
             <button onClick={() => { setTypeFilter("gastos"); setPage(1); }}
               className={`px-4 py-1.5 text-xs font-bold transition-colors ${typeFilter === "gastos" ? "bg-[var(--surface)] text-[var(--on-surface)] rounded-sm" : "text-[var(--on-surface-variant)] hover:text-[var(--on-surface)]"}`}>
               Gastos
@@ -192,6 +244,24 @@ export default function TransactionsList({ transactions }: { transactions: ApiTr
               Ingresos
             </button>
           </div>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => { setCategoryFilter(null); setPage(1); }}
+            className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${
+              !categoryFilter ? "bg-[var(--on-surface)] text-white" : "bg-[var(--surface-container)] text-[var(--on-surface-variant)] hover:bg-[var(--on-surface)] hover:text-white"
+            }`}>
+            Todas
+          </button>
+          {ALL_CATEGORIES.map((cat) => (
+            <button key={cat} onClick={() => { setCategoryFilter(categoryFilter === cat ? null : cat); setPage(1); }}
+              className={`px-3 py-1.5 text-[11px] font-bold rounded-full transition-colors ${
+                categoryFilter === cat ? "bg-[var(--on-surface)] text-white" : "bg-[var(--surface-container)] text-[var(--on-surface-variant)] hover:bg-[var(--on-surface)] hover:text-white"
+              }`}>
+              {cat}
+            </button>
+          ))}
         </div>
 
         {/* Transaction List */}
@@ -294,18 +364,18 @@ export default function TransactionsList({ transactions }: { transactions: ApiTr
           </div>
         </div>
 
-        {/* Quick Filters */}
+        {/* Category Filter */}
         <div>
-          <h3 className="text-xs font-bold text-[var(--on-surface-variant)] uppercase tracking-widest mb-4">Filtros rápidos</h3>
+          <h3 className="text-xs font-bold text-[var(--on-surface-variant)] uppercase tracking-widest mb-4">Categorías</h3>
           <div className="flex flex-wrap gap-2">
-            {QUICK_FILTERS.map((f) => (
-              <button key={f} onClick={() => { setQuickFilter(quickFilter === f ? null : f); setPage(1); }}
+            {ALL_CATEGORIES.map((cat) => (
+              <button key={cat} onClick={() => { setCategoryFilter(categoryFilter === cat ? null : cat); setPage(1); }}
                 className={`px-3 py-1.5 text-[10px] font-bold rounded-full transition-colors ${
-                  quickFilter === f
+                  categoryFilter === cat
                     ? "bg-[var(--on-surface)] text-white"
                     : "bg-[#E5E2DD] text-[var(--on-surface-variant)] hover:bg-[var(--on-surface)] hover:text-white"
                 }`}>
-                {f}
+                {cat}
               </button>
             ))}
           </div>

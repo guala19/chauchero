@@ -187,47 +187,13 @@ export default function DashboardContent({
     <div className="space-y-8">
       {/* Hero Section */}
       <section className="space-y-4">
-        {/* Month selector */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-[var(--on-surface-variant)] text-sm font-medium">
-            Gastos de
-          </span>
-          <div className="flex p-0.5 bg-[var(--surface-container)] rounded-lg gap-0.5 border border-[var(--outline)]">
-            {months.map((m, i) => (
-              <button
-                key={`${m.year}-${m.month}`}
-                onClick={() => setSelectedIdx(i)}
-                className={`px-3 py-1 text-[11px] font-semibold rounded-md transition-all capitalize ${
-                  i === selectedIdx
-                    ? "bg-[var(--surface)] text-[var(--primary)] shadow-sm border border-[var(--outline)]"
-                    : "text-[var(--tertiary-text)] hover:text-[var(--on-surface)]"
-                }`}
-              >
-                {m.shortLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* Amount */}
-        <div className="flex items-baseline gap-4 flex-wrap">
-          <h2
-            className="text-5xl font-semibold tabular text-[var(--on-surface)]"
-            style={{ letterSpacing: "-0.02em" }}
-          >
-            {formatCLP(stats.gastos)}
-          </h2>
-          {stats.variacion !== 0 && (
-            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold tabular ${
-              stats.variacion > 0
-                ? "bg-[#FBF0EC] text-[#C4522A]"
-                : "bg-[var(--success-bg)] text-[var(--success-text)]"
-            }`}>
-              <span>{stats.variacion > 0 ? "↑" : "↓"}</span>
-              {Math.abs(stats.variacion).toFixed(1).replace(".", ",")}% vs mes anterior
-            </div>
-          )}
-        </div>
+        <h2
+          className="text-5xl font-semibold tabular text-[var(--on-surface)]"
+          style={{ letterSpacing: "-0.02em" }}
+        >
+          {formatCLP(stats.gastos)}
+        </h2>
 
         {/* Sub-stats */}
         <div className="flex items-center gap-6">
