@@ -2,10 +2,46 @@
 
 import { useState, useMemo } from "react";
 import { formatCLP } from "@/lib/format";
-import { inferCategory } from "@/lib/categories";
 import LineChart, { type MonthData } from "@/components/dashboard/LineChart";
 import CategoryCards, { type CategoryData } from "@/components/dashboard/CategoryCards";
 import type { ApiTransaction } from "@/lib/api";
+
+// ─── Category inference ──────────────────────────────────────────────────────
+// Since tx.category is almost always null, we infer from the description.
+
+const CATEGORY_RULES: { pattern: RegExp; name: string; color: string; icon: string }[] = [
+  { pattern: /supermercado|lider|jumbo|unimarc|santa isabel|tottus|acuenta/i, name: "Supermercado", color: "orange", icon: "shopping_cart" },
+  { pattern: /restaurant|restoran|starbucks|mcdonalds|burger|pizza|sushi|cafe|coffe/i, name: "Restaurantes", color: "rose", icon: "restaurant" },
+  { pattern: /uber|cabify|metro|transantiago|bip!|copec|shell|enex|gasolina|estacion/i, name: "Transporte", color: "blue", icon: "directions_car" },
+  { pattern: /farmacia|ahumada|cruz verde|salcobrand/i, name: "Farmacia", color: "rose", icon: "local_pharmacy" },
+  { pattern: /netflix|spotify|youtube|disney|hbo|amazon prime|apple/i, name: "Suscripciones", color: "slate", icon: "subscriptions" },
+  { pattern: /rappi|pedidosya|uber eats|cornershop/i, name: "Delivery", color: "orange", icon: "delivery_dining" },
+];
+
+function inferCategory(tx: ApiTransaction): { name: string; color: string; icon: string } {
+  // Use explicit category if present
+  if (tx.category) {
+    const key = tx.category.toLowerCase();
+    const rule = CATEGORY_RULES.find((r) => r.name.toLowerCase() === key);
+    if (rule) return { name: rule.name, color: rule.color, icon: rule.icon };
+    return { name: tx.category, color: "slate", icon: "category" };
+  }
+
+  // Transfers
+  if (tx.transaction_type === "transfer_debit") {
+    return { name: "Transferencias", color: "blue", icon: "send_money" };
+  }
+
+  // Infer from description
+  const desc = tx.description;
+  for (const rule of CATEGORY_RULES) {
+    if (rule.pattern.test(desc)) {
+      return { name: rule.name, color: rule.color, icon: rule.icon };
+    }
+  }
+
+  return { name: "Otros", color: "slate", icon: "category" };
+}
 
 // ─── Month helpers ───────────────────────────────────────────────────────────
 
@@ -71,21 +107,15 @@ function computeMonthStats(monthTxs: ApiTransaction[], prevMonthTxs: ApiTransact
   return { gastos, ingresos, gastosCount, ingresosCount, totalCount: monthTxs.length, variacion };
 }
 
-const COLOR_KEY_MAP: Record<string, string> = {
-  supermercado: "orange", restaurantes: "rose", transporte: "blue",
-  farmacia: "rose", suscripciones: "slate", delivery: "orange",
-  servicios: "slate", transferencias: "blue", otros: "slate",
-};
-
 function computeCategories(txs: ApiTransaction[]): CategoryData[] {
   const outflows = txs.filter((tx) => tx.transaction_type !== "transfer_credit");
   const total = outflows.reduce((sum, tx) => sum + Number(tx.amount), 0);
   if (total === 0) return [];
 
-  const groups: Record<string, { amount: number; count: number; colorKey: string; icon: string }> = {};
+  const groups: Record<string, { amount: number; count: number; color: string; icon: string }> = {};
   for (const tx of outflows) {
     const cat = inferCategory(tx);
-    if (!groups[cat.name]) groups[cat.name] = { amount: 0, count: 0, colorKey: cat.colorKey, icon: cat.icon };
+    if (!groups[cat.name]) groups[cat.name] = { amount: 0, count: 0, color: cat.color, icon: cat.icon };
     groups[cat.name].amount += Number(tx.amount);
     groups[cat.name].count++;
   }
@@ -98,7 +128,7 @@ function computeCategories(txs: ApiTransaction[]): CategoryData[] {
       amount: data.amount,
       count: data.count,
       percent: Math.round((data.amount / total) * 100),
-      color: COLOR_KEY_MAP[data.colorKey] ?? "slate",
+      color: data.color,
       icon: data.icon,
     }));
 }
