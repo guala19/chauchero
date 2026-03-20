@@ -109,7 +109,7 @@ class GmailService:
 
     def _fetch_messages_parallel(self, message_ids: List[str]) -> List[EmailData]:
         results: List[EmailData] = []
-        workers = min(settings.GMAIL_FETCH_WORKERS, 5)
+        workers = min(settings.GMAIL_FETCH_WORKERS, 10)
 
         # Pre-build one Gmail API service per worker thread (httplib2 is NOT thread-safe)
         import threading

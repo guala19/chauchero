@@ -17,8 +17,7 @@ function decodeJwt(token: string): JwtPayload | null {
     if (!part) return null;
     const json = Buffer.from(part, "base64url").toString("utf-8");
     const payload = JSON.parse(json) as JwtPayload;
-    // Reject if expired
-    if (payload.exp && Date.now() / 1000 > payload.exp) return null;
+    // Expiry is enforced by middleware (auto-refresh) — here we only need the payload
     if (!payload.email) return null;
     return payload;
   } catch {
@@ -51,6 +50,7 @@ export default async function DashboardLayout({
   return (
     <DashboardShell
       user={{
+        id: payload.sub,
         email: payload.email,
         name: nameFromEmail(payload.email),
         last_sync_at: null, // fetched lazily by the header after mount

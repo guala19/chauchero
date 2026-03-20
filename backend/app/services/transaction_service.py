@@ -20,7 +20,7 @@ from ..parsers import parser_registry, EmailData
 from ..db.queries.transactions import (
     get_user_transactions,
     get_user_transaction_by_id,
-    upsert_transaction,
+    bulk_upsert_transactions,
     update_transaction,
 )
 from ..db.queries.bank_accounts import get_or_create_account
@@ -108,17 +108,23 @@ class TransactionService:
             "unsupported_banks": 0,
         }
 
+        # Parse all emails and collect transaction dicts for batch insert
+        pending_rows: list[dict] = []
         for email in emails:
-            result = self._process_email(user, email)
+            result = self._prepare_transaction(user, email)
 
-            if result == "created":
-                stats["transactions_created"] += 1
-            elif result == "skipped":
-                stats["transactions_skipped"] += 1
-            elif result == "no_parser":
+            if result == "no_parser":
                 stats["unsupported_banks"] += 1
             elif result == "error":
                 stats["parsing_errors"] += 1
+            elif isinstance(result, dict):
+                pending_rows.append(result)
+
+        # Batch insert all parsed transactions in a single commit
+        if pending_rows:
+            inserted = bulk_upsert_transactions(self.db, pending_rows)
+            stats["transactions_created"] = inserted
+            stats["transactions_skipped"] = len(pending_rows) - inserted
 
         update_last_sync(self.db, user, datetime.now(timezone.utc))
         return stats
@@ -230,7 +236,8 @@ class TransactionService:
 
     # ── Private ───────────────────────────────────────────────────────────
 
-    def _process_email(self, user: User, email: EmailData) -> str:
+    def _prepare_transaction(self, user: User, email: EmailData):
+        """Parse an email and return a transaction dict for batch insert, or a status string on failure."""
         parser = parser_registry.get_parser_for_email(email)
         if not parser:
             return "no_parser"
@@ -259,28 +266,18 @@ class TransactionService:
                 sanitized_description, normalized_type
             )
 
-            inserted = upsert_transaction(
-                self.db,
-                account_id=account.id,
-                amount=sanitized_amount,
-                transaction_date=parsed.transaction_date,
-                description=sanitized_description,
-                transaction_type=normalized_type,
-                category=category,
-                email_id=email.message_id,
-                email_subject=email.subject,
-                parser_confidence=parsed.confidence,
-                is_validated=parsed.confidence >= 90,
-            )
-
-            if not inserted:
-                return "skipped"
-
-            logger.info(
-                "Created transaction: %s - $%s (confidence: %d%%)",
-                sanitized_description, sanitized_amount, parsed.confidence,
-            )
-            return "created"
+            return {
+                "account_id": account.id,
+                "amount": sanitized_amount,
+                "transaction_date": parsed.transaction_date,
+                "description": sanitized_description,
+                "transaction_type": normalized_type,
+                "category": category,
+                "email_id": email.message_id,
+                "email_subject": email.subject,
+                "parser_confidence": parsed.confidence,
+                "is_validated": parsed.confidence >= 90,
+            }
 
         except Exception as e:
             logger.error("Error processing email %s: %s", email.message_id, e)

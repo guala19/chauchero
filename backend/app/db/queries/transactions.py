@@ -57,6 +57,23 @@ def upsert_transaction(db: Session, **values) -> bool:
     return result.rowcount > 0
 
 
+def bulk_upsert_transactions(db: Session, values_list: list) -> int:
+    """Insert multiple transactions in a single statement. Returns count of inserted rows."""
+    if not values_list:
+        return 0
+    for v in values_list:
+        if "id" not in v:
+            v["id"] = uuid.uuid4()
+    stmt = (
+        pg_insert(Transaction)
+        .values(values_list)
+        .on_conflict_do_nothing(index_elements=["email_id"])
+    )
+    result = db.execute(stmt)
+    db.commit()
+    return result.rowcount
+
+
 def update_transaction(
     db: Session,
     transaction: Transaction,

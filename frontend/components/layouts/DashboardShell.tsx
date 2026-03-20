@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/ui/Sidebar";
 import Header from "@/components/ui/Header";
 import { SidebarContext } from "@/components/providers/SidebarProvider";
+import { revalidateTransactions } from "@/app/actions";
 
 interface DashboardShellProps {
   children: React.ReactNode;
-  user: { email: string; name: string; last_sync_at: string | null };
+  user: { id: string; email: string; name: string; last_sync_at: string | null };
 }
 
 export default function DashboardShell({ children, user }: DashboardShellProps) {
@@ -22,10 +23,7 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
   }, [router]);
 
   const handleSync = useCallback(async () => {
-    const res = await fetch(
-      "/api/transactions/sync?max_emails=200&force_full_sync=true",
-      { method: "POST" },
-    );
+    const res = await fetch("/api/transactions/sync", { method: "POST" });
     if (!res.ok) {
       const body = await res.json().catch(() => null);
       const err = new Error(body?.detail ?? "Sync falló");
@@ -34,6 +32,7 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
     }
     const data = await res.json();
     setLastSyncAt(new Date().toISOString());
+    await revalidateTransactions(user.id);
     router.refresh();
     return data.stats ?? data;
   }, [router]);

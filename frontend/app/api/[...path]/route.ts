@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
  * Catch-all proxy that forwards client-side requests to the backend,
  * injecting the httpOnly auth-token cookie as an Authorization header.
  *
- * Client components call `/api/transactions/sync` → proxy forwards to
- * `BACKEND_URL/transactions/sync` with `Authorization: Bearer <token>`.
+ * On 401, it attempts to refresh the token via /auth/refresh-expired
+ * before returning the error to the client.
  */
 
 const BACKEND_URL =
@@ -14,18 +14,13 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ??
   "http://127.0.0.1:8000";
 
-async function proxyRequest(request: NextRequest) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("auth-token")?.value;
+const TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
 
-  if (!token) {
-    return NextResponse.json(
-      { detail: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  // Strip the /api prefix to get the backend path
+async function forwardRequest(
+  request: NextRequest,
+  token: string,
+  body: string | undefined,
+): Promise<Response> {
   const url = new URL(request.url);
   const backendPath = url.pathname.replace(/^\/api/, "");
   const backendUrl = `${BACKEND_URL}${backendPath}${url.search}`;
@@ -38,13 +33,72 @@ async function proxyRequest(request: NextRequest) {
     headers.set("Content-Type", contentType);
   }
 
-  const hasBody = request.method !== "GET" && request.method !== "HEAD";
-
-  const res = await fetch(backendUrl, {
+  return fetch(backendUrl, {
     method: request.method,
     headers,
-    body: hasBody ? await request.text() : undefined,
+    body,
   });
+}
+
+async function proxyRequest(request: NextRequest) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("auth-token")?.value;
+
+  if (!token) {
+    return NextResponse.json(
+      { detail: "Not authenticated" },
+      { status: 401 },
+    );
+  }
+
+  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  const body = hasBody ? await request.text() : undefined;
+
+  const res = await forwardRequest(request, token, body);
+
+  // On 401, try refreshing the expired token before giving up
+  if (res.status === 401) {
+    try {
+      const refreshRes = await fetch(`${BACKEND_URL}/auth/refresh-expired`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(5000),
+      });
+
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        const newToken: string = refreshData.access_token;
+
+        // Retry the original request with the new token
+        const retryRes = await forwardRequest(request, newToken, body);
+        const retryData = await retryRes.text();
+
+        const response = new NextResponse(retryData, {
+          status: retryRes.status,
+          headers: { "Content-Type": retryRes.headers.get("Content-Type") ?? "application/json" },
+        });
+
+        // Update the cookie with the new token
+        response.cookies.set("auth-token", newToken, {
+          path: "/",
+          maxAge: TOKEN_MAX_AGE,
+          sameSite: "lax",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        });
+        response.cookies.set("ch-session", "1", {
+          path: "/",
+          maxAge: TOKEN_MAX_AGE,
+          sameSite: "lax",
+          httpOnly: false,
+        });
+
+        return response;
+      }
+    } catch {
+      // Refresh failed — fall through to return original 401
+    }
+  }
 
   const data = await res.text();
 

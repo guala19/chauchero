@@ -22,6 +22,21 @@ async function throwIfNotOk(res: Response): Promise<void> {
   throw new ApiError(res.status, body.detail ?? `HTTP ${res.status}`);
 }
 
+// ─── JWT helper ──────────────────────────────────────────────────────────────
+
+/** Extract user ID from JWT without verification (server-side only). */
+export function getUserIdFromToken(token: string): string {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return "unknown";
+    const json = Buffer.from(part, "base64url").toString("utf-8");
+    const payload = JSON.parse(json);
+    return payload.sub ?? "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface ApiTransaction {
@@ -48,13 +63,16 @@ export interface ApiUser {
 
 // ─── API functions ───────────────────────────────────────────────────────────
 // These throw on HTTP errors so Next.js error boundaries can catch them.
+// Cache is per-user: userId in the URL differentiates cache keys,
+// and per-user tags allow targeted revalidation after sync.
 
 export async function fetchTransactions(
   token: string,
   limit = 500,
 ): Promise<ApiTransaction[]> {
-  const res = await fetch(`${API_URL}/transactions/?limit=${limit}`, {
-    cache: "no-store",
+  const uid = getUserIdFromToken(token);
+  const res = await fetch(`${API_URL}/transactions/?limit=${limit}&_uid=${uid}`, {
+    next: { tags: [`transactions:${uid}`], revalidate: 300 },
     signal: AbortSignal.timeout(8000),
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -63,8 +81,9 @@ export async function fetchTransactions(
 }
 
 export async function fetchUser(token: string): Promise<ApiUser | null> {
-  const res = await fetch(`${API_URL}/auth/me`, {
-    cache: "no-store",
+  const uid = getUserIdFromToken(token);
+  const res = await fetch(`${API_URL}/auth/me?_uid=${uid}`, {
+    next: { tags: [`user:${uid}`], revalidate: 600 },
     signal: AbortSignal.timeout(5000),
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -74,8 +93,9 @@ export async function fetchUser(token: string): Promise<ApiUser | null> {
 }
 
 export async function fetchTransactionCount(token: string): Promise<number> {
-  const res = await fetch(`${API_URL}/transactions/?limit=1`, {
-    cache: "no-store",
+  const uid = getUserIdFromToken(token);
+  const res = await fetch(`${API_URL}/transactions/?limit=1&_uid=${uid}`, {
+    next: { tags: [`transactions:${uid}`], revalidate: 300 },
     signal: AbortSignal.timeout(5000),
     headers: { Authorization: `Bearer ${token}` },
   });
