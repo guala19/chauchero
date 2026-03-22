@@ -59,6 +59,7 @@ export interface ApiUser {
   email: string;
   first_name: string;
   last_name: string;
+  email_verified: boolean;
   last_sync_at: string | null;
   created_at: string;
 }
