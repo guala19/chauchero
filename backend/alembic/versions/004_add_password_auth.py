@@ -20,7 +20,14 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # 1. Drop dependent tables' FK constraints and columns
+    # 0. Clear all existing data — OAuth-only users have no RUT/password
+    #    CASCADE through FKs: transactions → bank_accounts → users
+    op.execute("DELETE FROM transactions")
+    op.execute("DELETE FROM bank_accounts")
+    op.execute("DELETE FROM users")
+
+    # 1. Drop dependent tables' FK constraints and indexes on user_id
+    op.execute("DROP INDEX IF EXISTS ix_bank_accounts_user_bank_digits_unique")
     op.drop_constraint('bank_accounts_user_id_fkey', 'bank_accounts', type_='foreignkey')
     op.drop_column('bank_accounts', 'user_id')
 
