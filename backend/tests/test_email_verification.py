@@ -28,9 +28,9 @@ def client(mock_db):
 class TestVerifyEmail:
     @patch("app.routers.auth.get_user_by_rut")
     def test_verify_email_success(self, mock_get_rut, client):
-        user = make_user(rut="12.345.678-9")
+        user = make_user(rut="12.345.678-5")
         mock_get_rut.return_value = user
-        token = create_verification_token("12.345.678-9")
+        token = create_verification_token("12.345.678-5")
 
         res = client.post(f"/auth/verify-email?token={token}")
         assert res.status_code == 200
@@ -42,16 +42,16 @@ class TestVerifyEmail:
 
     def test_verify_email_wrong_purpose(self, client):
         """A password reset token should not verify email."""
-        token = create_reset_token("12.345.678-9")
+        token = create_reset_token("12.345.678-5")
         res = client.post(f"/auth/verify-email?token={token}")
         assert res.status_code == 400
 
     @patch("app.routers.auth.get_user_by_rut")
     def test_already_verified_returns_ok(self, mock_get_rut, client):
-        user = make_user(rut="12.345.678-9")
+        user = make_user(rut="12.345.678-5")
         user.email_verified = True
         mock_get_rut.return_value = user
-        token = create_verification_token("12.345.678-9")
+        token = create_verification_token("12.345.678-5")
 
         res = client.post(f"/auth/verify-email?token={token}")
         assert res.status_code == 200
@@ -89,9 +89,9 @@ class TestForgotPassword:
 class TestResetPassword:
     @patch("app.routers.auth.get_user_by_rut")
     def test_reset_password_success(self, mock_get_rut, client):
-        user = make_user(rut="12.345.678-9")
+        user = make_user(rut="12.345.678-5")
         mock_get_rut.return_value = user
-        token = create_reset_token("12.345.678-9")
+        token = create_reset_token("12.345.678-5")
 
         res = client.post("/auth/reset-password", json={
             "token": token,
@@ -111,7 +111,7 @@ class TestResetPassword:
 
     def test_reset_wrong_purpose(self, client):
         """A verification token should not reset password."""
-        token = create_verification_token("12.345.678-9")
+        token = create_verification_token("12.345.678-5")
         res = client.post("/auth/reset-password", json={
             "token": token,
             "new_password": "nueva_clave_segura",
@@ -120,7 +120,7 @@ class TestResetPassword:
         assert res.status_code == 400
 
     def test_reset_password_mismatch(self, client):
-        token = create_reset_token("12.345.678-9")
+        token = create_reset_token("12.345.678-5")
         res = client.post("/auth/reset-password", json={
             "token": token,
             "new_password": "nueva_clave_segura",
@@ -129,7 +129,7 @@ class TestResetPassword:
         assert res.status_code == 422
 
     def test_reset_weak_password(self, client):
-        token = create_reset_token("12.345.678-9")
+        token = create_reset_token("12.345.678-5")
         res = client.post("/auth/reset-password", json={
             "token": token,
             "new_password": "corta",
@@ -140,10 +140,10 @@ class TestResetPassword:
     @patch("app.routers.auth.get_user_by_rut")
     def test_reset_clears_lockout(self, mock_get_rut, client):
         """Password reset should also clear account lockout."""
-        user = make_user(rut="12.345.678-9")
+        user = make_user(rut="12.345.678-5")
         user.failed_login_attempts = 10
         mock_get_rut.return_value = user
-        token = create_reset_token("12.345.678-9")
+        token = create_reset_token("12.345.678-5")
 
         res = client.post("/auth/reset-password", json={
             "token": token,

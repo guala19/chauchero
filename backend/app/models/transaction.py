@@ -27,7 +27,8 @@ class Transaction(Base):
     
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
+    deleted_at = Column(DateTime, nullable=True)
+
     account = relationship("BankAccount", back_populates="transactions")
     
     def __repr__(self):

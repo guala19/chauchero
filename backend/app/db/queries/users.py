@@ -5,11 +5,11 @@ from ...models import User
 
 
 def get_user_by_rut(db: Session, rut: str) -> Optional[User]:
-    return db.query(User).filter(User.rut == rut).first()
+    return db.query(User).filter(User.rut == rut, User.deleted_at.is_(None)).first()
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
-    return db.query(User).filter(User.email == email).first()
+    return db.query(User).filter(User.email == email, User.deleted_at.is_(None)).first()
 
 
 def create_user(

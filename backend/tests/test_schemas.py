@@ -97,7 +97,7 @@ class TestSyncSchemas:
 class TestUserSchemas:
     def test_user_response(self):
         resp = UserResponse(
-            rut="12.345.678-9",
+            rut="12.345.678-5",
             email="test@example.com",
             first_name="Test",
             last_name="User",
@@ -107,7 +107,7 @@ class TestUserSchemas:
 
     def test_token_response(self):
         user = UserResponse(
-            rut="12.345.678-9",
+            rut="12.345.678-5",
             email="test@example.com",
             first_name="Test",
             last_name="User",

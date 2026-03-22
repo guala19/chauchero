@@ -262,7 +262,7 @@ class TestAuthRefresh:
 class TestAuthRefreshExpired:
     def test_recently_expired_token_accepted(self, client):
         import datetime as _dt
-        fake_rut = "12.345.678-9"
+        fake_rut = "12.345.678-5"
         expired_token = "Bearer some.expired.token"
         with patch("app.routers.auth.verify_token") as mock_verify, \
              patch("app.routers.auth.get_user_by_rut") as mock_get_user:

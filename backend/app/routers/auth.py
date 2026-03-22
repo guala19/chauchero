@@ -17,6 +17,7 @@ from ..core.email_service import (
     send_verification_email, send_password_reset_email,
 )
 from ..db.queries.users import get_user_by_rut, get_user_by_email, create_user
+from ..services.audit_service import log_action
 from .deps import get_current_user
 
 logger = structlog.get_logger(__name__)
@@ -137,6 +138,7 @@ def register(
         last_name=body.last_name,
     )
     logger.info("user_registered", email=user.email, rut=user.rut)
+    log_action(db, action="register", request=request, user_rut=user.rut, detail=user.email)
 
     # Send verification email (non-blocking — don't fail registration if email fails)
     verification_token = create_verification_token(user.rut)
@@ -171,11 +173,13 @@ def login(
     if not user or not user.password_hash:
         # Dummy hash to prevent timing attacks (email enumeration)
         verify_password("dummy", hash_password("dummy"))
+        log_action(db, action="login_failed", request=request, detail=body.email)
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
     # Check account lockout
     if is_account_locked(user):
         logger.warning("login_blocked_locked_account", rut=user.rut)
+        log_action(db, action="login_locked", request=request, user_rut=user.rut)
         raise HTTPException(
             status_code=423,
             detail="Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en 15 minutos.",
@@ -183,11 +187,13 @@ def login(
 
     if not verify_password(body.password, user.password_hash):
         record_failed_login(db, user)
+        log_action(db, action="login_failed", request=request, user_rut=user.rut)
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
     # Successful login — reset failed attempts
     reset_failed_logins(db, user)
     logger.info("user_login", email=user.email, rut=user.rut)
+    log_action(db, action="login", request=request, user_rut=user.rut)
 
     token = create_access_token(data={"sub": user.rut, "email": user.email})
     return TokenResponse(
@@ -228,6 +234,7 @@ def verify_email(
     user.email_verified = True
     db.commit()
     logger.info("email_verified", rut=user.rut, email=user.email)
+    log_action(db, action="email_verified", request=request, user_rut=user.rut)
     return {"message": "Email verificado exitosamente"}
 
 
@@ -273,6 +280,7 @@ def forgot_password(
         token = create_reset_token(user.rut)
         send_password_reset_email(user.email, user.first_name, token)
         logger.info("password_reset_requested", rut=user.rut)
+        log_action(db, action="password_reset_request", request=request, user_rut=user.rut)
 
     return {"message": "Si el email existe, recibirás instrucciones para restablecer tu contraseña."}
 
@@ -305,6 +313,7 @@ def reset_password(
     db.commit()
 
     logger.info("password_reset_completed", rut=user.rut)
+    log_action(db, action="password_reset_complete", request=request, user_rut=user.rut)
     return {"message": "Contraseña restablecida exitosamente"}
 
 
@@ -341,6 +350,7 @@ def google_login(
     },
 )
 def google_callback(
+    request: Request,
     code: str = Query(...),
     state: str = Query(...),
     current_user=Depends(get_current_user),
@@ -349,11 +359,13 @@ def google_callback(
     try:
         auth_service = AuthService(db)
         auth_service.link_gmail_account(code, state, current_user)
+        log_action(db, action="gmail_linked", request=request, user_rut=current_user.rut)
         return RedirectResponse(
             url=f"{settings.FRONTEND_URL}/dashboard/settings?gmail=linked"
         )
     except Exception as e:
         logger.error("Gmail link error: %s", e, exc_info=True)
+        log_action(db, action="gmail_link_failed", request=request, user_rut=current_user.rut, detail=str(e))
         if settings.ENVIRONMENT == "development":
             detail = f"Gmail link error: {e}"
         else:

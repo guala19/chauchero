@@ -14,6 +14,7 @@ def get_or_create_account(
     query = db.query(BankAccount).filter(
         BankAccount.user_rut == user.rut,
         BankAccount.bank_name == bank_name,
+        BankAccount.deleted_at.is_(None),
     )
     if last_4_digits:
         query = query.filter(BankAccount.last_4_digits == last_4_digits)

@@ -163,6 +163,7 @@ class TransactionService:
             .filter(
                 Transaction.account.has(user_rut=user.rut),
                 Transaction.category.is_(None),
+                Transaction.deleted_at.is_(None),
             )
             .all()
         )

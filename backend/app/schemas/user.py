@@ -45,11 +45,14 @@ class RegisterRequest(BaseModel):
 
     @field_validator("rut")
     @classmethod
-    def validate_rut_format(cls, v: str) -> str:
+    def validate_rut(cls, v: str) -> str:
         import re
+        from ..utils.rut_validator import validate_rut_checksum
         v = v.strip()
         if not re.match(r"^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$", v):
             raise ValueError("RUT debe tener formato XX.XXX.XXX-X")
+        if not validate_rut_checksum(v):
+            raise ValueError("RUT inválido — dígito verificador incorrecto")
         return v
 
     @model_validator(mode="after")

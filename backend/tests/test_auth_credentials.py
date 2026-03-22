@@ -15,7 +15,7 @@ from app.core.password import hash_password, verify_password
 from app.core.rate_limiter import is_account_locked, MAX_FAILED_ATTEMPTS, LOCKOUT_DURATION_MINUTES
 from tests.factories import make_user
 
-VALID_RUT = "12.345.678-9"
+VALID_RUT = "12.345.678-5"
 VALID_REGISTER = {
     "email": "nuevo@ejemplo.cl",
     "password": "clave_segura_123",

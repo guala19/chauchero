@@ -17,7 +17,8 @@ class BankAccount(Base):
     currency = Column(String(3), default="CLP", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
-    
+    deleted_at = Column(DateTime, nullable=True)
+
     user = relationship("User", back_populates="bank_accounts")
     transactions = relationship("Transaction", back_populates="account", cascade="all, delete-orphan")
     

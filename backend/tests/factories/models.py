@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 def make_user(
     *,
-    rut="12.345.678-9",
+    rut="12.345.678-5",
     email="test@example.com",
     password_hash=None,
     first_name="Test",
@@ -43,7 +43,7 @@ def make_user(
 def make_bank_account(
     *,
     id=None,
-    user_rut="12.345.678-9",
+    user_rut="12.345.678-5",
     bank_name="Banco de Chile",
     last_4_digits="1234",
     currency="CLP",
