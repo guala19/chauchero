@@ -1,37 +1,53 @@
 export const MONTHLY_DATA = [
-  { month: "Oct", gastos: 892_000, ingresos: 1_800_000 },
-  { month: "Nov", gastos: 1_045_000, ingresos: 1_800_000 },
-  { month: "Dic", gastos: 1_320_000, ingresos: 2_100_000 },
-  { month: "Ene", gastos: 980_000, ingresos: 1_800_000 },
-  { month: "Feb", gastos: 1_150_000, ingresos: 1_850_000 },
-  { month: "Mar", gastos: 760_000, ingresos: 1_800_000 },
+  { month: "OCT", gastos: 180_000 },
+  { month: "NOV", gastos: 160_000 },
+  { month: "DIC", gastos: 220_000 },
+  { month: "ENE", gastos: 280_000 },
+  { month: "FEB", gastos: 320_000 },
+  { month: "MAR", gastos: 310_000 },
 ];
 
 export const CATEGORY_DATA = [
-  { name: "Alimentación", amount: 285_000, color: "#6C5CE7" },
-  { name: "Transporte", amount: 142_000, color: "#3B82F6" },
-  { name: "Entretenimiento", amount: 98_000, color: "#00B67A" },
-  { name: "Servicios", amount: 135_000, color: "#F5A623" },
-  { name: "Otros", amount: 100_000, color: "#E5484D" },
+  { name: "Otros", amount: 325_700, count: 7, percent: 38, color: "slate", icon: "category" as const },
+  { name: "Supermercado", amount: 245_000, count: 5, percent: 29, color: "orange", icon: "shopping_cart" as const },
+  { name: "Restaurantes", amount: 184_220, count: 4, percent: 22, color: "rose", icon: "restaurant" as const },
+  { name: "Transporte", amount: 92_400, count: 8, percent: 11, color: "blue", icon: "directions_car" as const },
 ];
 
-export const RECENT_TRANSACTIONS = [
-  { id: 1, description: "Uber Eats", category: "Alimentación", amount: -12_500, date: "Hoy, 14:35", type: "debit" as const },
-  { id: 2, description: "Transferencia recibida", category: "Ingreso", amount: 450_000, date: "Hoy, 10:20", type: "credit" as const },
-  { id: 3, description: "Spotify Premium", category: "Entretenimiento", amount: -5_490, date: "Ayer, 08:00", type: "debit" as const },
-  { id: 4, description: "Supermercado Líder", category: "Alimentación", amount: -34_890, date: "Ayer, 19:12", type: "debit" as const },
-  { id: 5, description: "Metro de Santiago", category: "Transporte", amount: -790, date: "12 mar, 07:45", type: "debit" as const },
-  { id: 6, description: "Netflix", category: "Entretenimiento", amount: -6_990, date: "11 mar, 08:00", type: "debit" as const },
-  { id: 7, description: "Farmacia Ahumada", category: "Otros", amount: -8_200, date: "10 mar, 16:30", type: "debit" as const },
-];
-
-export const KPI_DATA = {
-  gastoMes: 760_000,
-  gastoMesAnterior: 1_150_000,
-  ingresoMes: 1_800_000,
-  ingresoMesAnterior: 1_850_000,
-  balance: 1_040_000,
-  balanceAnterior: 700_000,
-  transacciones: 47,
-  transaccionesAnterior: 62,
+export type Transaction = {
+  id: number;
+  description: string;
+  date: string;
+  amount: number;
+  dotColor: string;
 };
+
+export const RECENT_TRANSACTIONS: Transaction[] = [
+  { id: 1, description: "Jumbo Bilbao", date: "14 Mar \u00b7 12:45", amount: -42_100, dotColor: "bg-orange-400" },
+  { id: 2, description: "Uber *Trip", date: "13 Mar \u00b7 21:20", amount: -8_400, dotColor: "bg-blue-400" },
+  { id: 3, description: "Transferencia Recibida", date: "12 Mar \u00b7 09:15", amount: 150_000, dotColor: "bg-[#3A7D5E]" },
+  { id: 4, description: "Starbucks Reserve", date: "12 Mar \u00b7 08:30", amount: -4_800, dotColor: "bg-rose-400" },
+  { id: 5, description: "Netflix Chile", date: "10 Mar \u00b7 02:00", amount: -10_990, dotColor: "bg-[#9E8E86]" },
+  { id: 6, description: "Unimarc Los Militares", date: "09 Mar \u00b7 18:45", amount: -12_320, dotColor: "bg-orange-400" },
+];
+
+export const HERO_DATA = {
+  gastoMes: 847_320,
+  ingresoMes: 450_000,
+  transacciones: 12,
+  variacionPercent: 15.3,
+};
+
+export const BANKS = [
+  { name: "Banco de Chile", code: "CHILE", connected: true, color: "#002e67" },
+  { name: "Santander Chile", code: null, connected: false, color: null },
+  { name: "Banco Bci", code: null, connected: false, color: null },
+];
+
+export const NAV_ITEMS = [
+  { label: "Inicio", icon: "home", href: "/", active: true },
+  { label: "Transacciones", icon: "receipt_long", href: "/transactions", active: false },
+  { label: "Cuentas", icon: "account_balance_wallet", href: "/accounts", active: false },
+  { label: "Anal\u00edticas", icon: "leaderboard", href: "/analytics", active: false },
+  { label: "Configuraci\u00f3n", icon: "settings", href: "/settings", active: false },
+];

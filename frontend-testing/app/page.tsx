@@ -1,31 +1,32 @@
+import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import KpiCards from "@/components/KpiCards";
-import MonthlyChart from "@/components/MonthlyChart";
-import CategoryDonut from "@/components/CategoryDonut";
-import RecentTransactions from "@/components/RecentTransactions";
+import HeroSection from "@/components/HeroSection";
+import ChartSection from "@/components/ChartSection";
+import CategoryCards from "@/components/CategoryCards";
+import RightPanel from "@/components/RightPanel";
 
 export default function Dashboard() {
   return (
-    <div className="mx-auto max-w-[1200px] px-6">
-      <Header />
+    <>
+      {/* Material Symbols font */}
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet"
+      />
 
-      <div className="space-y-6 pb-12">
-        {/* KPI Cards */}
-        <KpiCards />
+      <Sidebar />
 
-        {/* Charts row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
-            <MonthlyChart />
-          </div>
-          <div className="lg:col-span-2">
-            <CategoryDonut />
-          </div>
+      <main className="ml-[204px] mr-[272px] min-h-screen">
+        <Header />
+        <div className="p-6 space-y-8">
+          <HeroSection />
+          <ChartSection />
+          <CategoryCards />
         </div>
+      </main>
 
-        {/* Recent transactions */}
-        <RecentTransactions />
-      </div>
-    </div>
+      <RightPanel />
+    </>
   );
 }
