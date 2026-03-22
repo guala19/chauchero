@@ -56,12 +56,12 @@ class TestSyncTransactions:
         mock_update.assert_called_once()
 
     @patch("app.services.transaction_service.update_last_sync")
-    @patch("app.services.transaction_service.upsert_transaction", return_value=True)
+    @patch("app.services.transaction_service.bulk_upsert_transactions", return_value=1)
     @patch("app.services.transaction_service.get_or_create_account")
     @patch("app.services.transaction_service.parser_registry")
     @patch("app.services.transaction_service.GmailService")
     def test_successful_sync_counts(
-        self, MockGmail, mock_registry, mock_get_account, mock_upsert, mock_update, service, user
+        self, MockGmail, mock_registry, mock_get_account, mock_bulk_upsert, mock_update, service, user
     ):
         email = make_email_data()
         MockGmail.return_value.fetch_bank_emails.return_value = [email]
@@ -98,8 +98,8 @@ class TestSyncTransactions:
 
         service.sync_transactions_for_user(user, force_full_sync=True)
 
-        call_kwargs = MockGmail.return_value.fetch_bank_emails.call_args
-        assert call_kwargs.kwargs.get("after_date") is None or call_kwargs[1].get("after_date") is None
+        _, kwargs = MockGmail.return_value.fetch_bank_emails.call_args
+        assert kwargs["after_date"] is None
 
 
 # ── check_sync_cooldown ───────────────────────────────────────────────────────
@@ -160,14 +160,14 @@ class TestSyncLock:
         assert result is False
 
 
-# ── _process_email ───────────────────────────────────────────────────────────
+# ── _prepare_transaction ─────────────────────────────────────────────────────
 
 
-class TestProcessEmail:
+class TestPrepareTransaction:
     @patch("app.services.transaction_service.parser_registry")
     def test_no_parser_returns_no_parser(self, mock_registry, service, user):
         mock_registry.get_parser_for_email.return_value = None
-        result = service._process_email(user, make_email_data())
+        result = service._prepare_transaction(user, make_email_data())
         assert result == "no_parser"
 
     @patch("app.services.transaction_service.parser_registry")
@@ -175,23 +175,79 @@ class TestProcessEmail:
         mock_parser = MagicMock()
         mock_parser.parse.return_value = None
         mock_registry.get_parser_for_email.return_value = mock_parser
-        result = service._process_email(user, make_email_data())
+        result = service._prepare_transaction(user, make_email_data())
         assert result == "error"
 
-    @patch("app.services.transaction_service.upsert_transaction", return_value=False)
     @patch("app.services.transaction_service.get_or_create_account")
     @patch("app.services.transaction_service.parser_registry")
-    def test_duplicate_email_returns_skipped(
-        self, mock_registry, mock_get_account, mock_upsert, service, user
+    def test_successful_parse_returns_dict_with_correct_values(
+        self, mock_registry, mock_get_account, service, user
     ):
+        parsed = make_parsed_transaction(
+            amount=Decimal("25000"),
+            description="LIDER EXPRESS",
+            transaction_type="debit",
+        )
+        email = make_email_data(message_id="msg-123", subject="Cargo en Cuenta")
+        account = make_bank_account()
+
         mock_parser = MagicMock()
         mock_parser.bank_name = "Banco de Chile"
-        mock_parser.parse.return_value = make_parsed_transaction()
+        mock_parser.parse.return_value = parsed
+        mock_registry.get_parser_for_email.return_value = mock_parser
+        mock_get_account.return_value = account
+
+        result = service._prepare_transaction(user, email)
+
+        assert isinstance(result, dict)
+        assert result["account_id"] == account.id
+        assert result["amount"] == Decimal("25000")
+        assert result["email_id"] == "msg-123"
+        assert result["email_subject"] == "Cargo en Cuenta"
+        assert result["description"] == "Lider Express"  # sanitized: capitalized
+        assert result["transaction_type"] == "debit"
+        assert result["parser_confidence"] == 100
+
+    @patch("app.services.transaction_service.get_or_create_account")
+    @patch("app.services.transaction_service.parser_registry")
+    def test_prepare_transaction_assigns_category(
+        self, mock_registry, mock_get_account, service, user
+    ):
+        parsed = make_parsed_transaction(
+            description="UBER EATS CHILE",
+            transaction_type="debit",
+            category=None,
+        )
+        mock_parser = MagicMock()
+        mock_parser.bank_name = "Banco de Chile"
+        mock_parser.parse.return_value = parsed
         mock_registry.get_parser_for_email.return_value = mock_parser
         mock_get_account.return_value = make_bank_account()
 
-        result = service._process_email(user, make_email_data())
-        assert result == "skipped"
+        result = service._prepare_transaction(user, make_email_data())
+
+        assert isinstance(result, dict)
+        assert result["category"] is not None
+        assert result["category"] != ""
+
+    @patch("app.services.transaction_service.get_or_create_account")
+    @patch("app.services.transaction_service.parser_registry")
+    def test_prepare_transaction_preserves_parser_category(
+        self, mock_registry, mock_get_account, service, user
+    ):
+        parsed = make_parsed_transaction(
+            description="Some Merchant",
+            category="Supermercado",
+        )
+        mock_parser = MagicMock()
+        mock_parser.bank_name = "Banco de Chile"
+        mock_parser.parse.return_value = parsed
+        mock_registry.get_parser_for_email.return_value = mock_parser
+        mock_get_account.return_value = make_bank_account()
+
+        result = service._prepare_transaction(user, make_email_data())
+
+        assert result["category"] == "Supermercado"
 
     @patch("app.services.transaction_service.parser_registry")
     def test_parser_exception_returns_error(self, mock_registry, service, user):
@@ -199,23 +255,19 @@ class TestProcessEmail:
         mock_parser.parse.side_effect = Exception("boom")
         mock_registry.get_parser_for_email.return_value = mock_parser
 
-        result = service._process_email(user, make_email_data())
+        result = service._prepare_transaction(user, make_email_data())
         assert result == "error"
         service.db.rollback.assert_called_once()
 
-    @patch("app.services.transaction_service.upsert_transaction", return_value=True)
-    @patch("app.services.transaction_service.get_or_create_account")
     @patch("app.services.transaction_service.parser_registry")
-    def test_invalid_transaction_returns_error(
-        self, mock_registry, mock_get_account, mock_upsert, service, user
-    ):
+    def test_invalid_transaction_returns_error(self, mock_registry, service, user):
         mock_parser = MagicMock()
         mock_parser.bank_name = "Banco de Chile"
         # Amount=0 → invalid
         mock_parser.parse.return_value = make_parsed_transaction(amount=Decimal("0"))
         mock_registry.get_parser_for_email.return_value = mock_parser
 
-        result = service._process_email(user, make_email_data())
+        result = service._prepare_transaction(user, make_email_data())
         assert result == "error"
 
 
@@ -254,6 +306,49 @@ class TestUpdateTransaction:
         mock_get.return_value = None
         result = service.update_transaction(user, "missing-id", {"notes": "x"})
         assert result is None
+
+
+# ── categorize_uncategorized ─────────────────────────────────────────────────
+
+
+class TestCategorizeUncategorized:
+    def test_categorizes_none_category_transactions(self, service, user):
+        tx1 = MagicMock()
+        tx1.description = "UBER EATS CHILE"
+        tx1.transaction_type = "debit"
+        tx1.category = None
+
+        tx2 = MagicMock()
+        tx2.description = "LIDER EXPRESS"
+        tx2.transaction_type = "debit"
+        tx2.category = None
+
+        mock_query = MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+        mock_query.all.return_value = [tx1, tx2]
+        service.db.query.return_value = mock_query
+
+        result = service.categorize_uncategorized(user)
+
+        assert result["total_uncategorized"] == 2
+        assert result["categorized"] == 2
+        assert tx1.category is not None
+        assert tx2.category is not None
+        service.db.commit.assert_called_once()
+
+    def test_no_uncategorized_skips_commit(self, service, user):
+        mock_query = MagicMock()
+        mock_query.join.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+        mock_query.all.return_value = []
+        service.db.query.return_value = mock_query
+
+        result = service.categorize_uncategorized(user)
+
+        assert result["total_uncategorized"] == 0
+        assert result["categorized"] == 0
+        service.db.commit.assert_not_called()
 
 
 # ── debug_gmail_query ────────────────────────────────────────────────────────

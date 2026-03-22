@@ -21,7 +21,7 @@ from app.db.queries.users import (
     clear_gmail_token,
 )
 from app.db.queries.bank_accounts import get_or_create_account
-from app.db.queries.transactions import upsert_transaction, get_user_transactions
+from app.db.queries.transactions import upsert_transaction, bulk_upsert_transactions, get_user_transactions
 
 
 # ── User queries ──────────────────────────────────────────────────────────────
@@ -173,3 +173,71 @@ class TestTransactionUpsert:
         self._make_tx(db, user1, email_id="iso-user1-001")
         txs_user2 = get_user_transactions(db, user2, limit=10, offset=0)
         assert len(txs_user2) == 0
+
+
+# ── Bulk upsert transactions ────────────────────────────────────────────────
+
+class TestBulkUpsertTransactions:
+    def _make_row(self, account_id, email_id="bulk-001"):
+        return {
+            "account_id": account_id,
+            "amount": Decimal("15000"),
+            "transaction_date": datetime(2026, 3, 5, 10, 0, tzinfo=timezone.utc),
+            "description": "Test Merchant",
+            "transaction_type": "debit",
+            "email_id": email_id,
+            "email_subject": "Cargo en Cuenta",
+            "parser_confidence": 90,
+        }
+
+    def test_inserts_multiple_rows(self, db):
+        user = create_user(db, email="bulk1@example.com")
+        account = get_or_create_account(db, user, bank_name="Banco de Chile", last_4_digits="1111")
+        rows = [
+            self._make_row(account.id, email_id="bulk-001"),
+            self._make_row(account.id, email_id="bulk-002"),
+            self._make_row(account.id, email_id="bulk-003"),
+        ]
+        inserted = bulk_upsert_transactions(db, rows)
+        assert inserted == 3
+        txs = get_user_transactions(db, user, limit=10, offset=0)
+        assert len(txs) == 3
+
+    def test_skips_duplicates_in_batch(self, db):
+        """If the same email_id appears twice in a batch, only one is inserted."""
+        user = create_user(db, email="bulk2@example.com")
+        account = get_or_create_account(db, user, bank_name="Banco de Chile", last_4_digits="2222")
+        rows = [
+            self._make_row(account.id, email_id="dup-001"),
+            self._make_row(account.id, email_id="dup-001"),
+        ]
+        inserted = bulk_upsert_transactions(db, rows)
+        assert inserted == 1
+
+    def test_partial_duplicates_inserts_new_only(self, db):
+        """Mix of existing and new email_ids: only new ones are inserted."""
+        user = create_user(db, email="bulk3@example.com")
+        account = get_or_create_account(db, user, bank_name="Banco de Chile", last_4_digits="3333")
+
+        # Insert first batch
+        first_batch = [
+            self._make_row(account.id, email_id="existing-001"),
+            self._make_row(account.id, email_id="existing-002"),
+        ]
+        bulk_upsert_transactions(db, first_batch)
+
+        # Insert second batch with overlap
+        second_batch = [
+            self._make_row(account.id, email_id="existing-001"),  # already exists
+            self._make_row(account.id, email_id="existing-002"),  # already exists
+            self._make_row(account.id, email_id="new-001"),       # new
+        ]
+        inserted = bulk_upsert_transactions(db, second_batch)
+        assert inserted == 1
+
+        txs = get_user_transactions(db, user, limit=10, offset=0)
+        assert len(txs) == 3
+
+    def test_empty_list_returns_zero(self, db):
+        inserted = bulk_upsert_transactions(db, [])
+        assert inserted == 0
