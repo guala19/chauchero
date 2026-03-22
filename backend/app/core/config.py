@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     SYNC_MAX_EMAILS: int = 2000
     SYNC_COOLDOWN_MINUTES: int = 5
 
+    # ── Encryption ──────────────────────────────────────────────────────────
+    ENCRYPTION_KEY: Optional[str] = None  # Fernet key for encrypting sensitive DB fields
+
     # ── Email (Resend) ─────────────────────────────────────────────────────
     RESEND_API_KEY: Optional[str] = None
     EMAIL_FROM: str = "Chauchero <noreply@chauchero.app>"

@@ -2,6 +2,7 @@ from sqlalchemy import Column, String, DateTime, Text, Boolean, Integer
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from ..core.database import Base
+from ..core.encryption import EncryptedText
 
 
 class User(Base):
@@ -12,7 +13,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
-    gmail_refresh_token = Column(Text, nullable=True)
+    gmail_refresh_token = Column(EncryptedText, nullable=True)
     gmail_token_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
