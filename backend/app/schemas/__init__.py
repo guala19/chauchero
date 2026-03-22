@@ -1,4 +1,7 @@
-from .user import UserResponse, TokenResponse, RegisterRequest, LoginRequest
+from .user import (
+    UserResponse, TokenResponse, RegisterRequest, LoginRequest,
+    ForgotPasswordRequest, ResetPasswordRequest,
+)
 from .transaction import (
     TransactionResponse,
     TransactionUpdate,
@@ -15,6 +18,8 @@ __all__ = [
     "TokenResponse",
     "RegisterRequest",
     "LoginRequest",
+    "ForgotPasswordRequest",
+    "ResetPasswordRequest",
     "TransactionResponse",
     "TransactionUpdate",
     "SyncResponse",

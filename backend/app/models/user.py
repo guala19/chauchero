@@ -22,6 +22,9 @@ class User(Base):
     is_syncing = Column(Boolean, default=False, nullable=False)
     sync_started_at = Column(DateTime, nullable=True)
 
+    # Email verification
+    email_verified = Column(Boolean, default=False, nullable=False)
+
     # Account lockout — brute force protection
     failed_login_attempts = Column(Integer, default=0, nullable=False)
     last_failed_login_at = Column(DateTime, nullable=True)

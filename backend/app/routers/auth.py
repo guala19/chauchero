@@ -10,8 +10,12 @@ from ..core.rate_limiter import (
     limiter, record_failed_login, reset_failed_logins, is_account_locked,
 )
 from ..services.auth_service import AuthService
-from ..schemas import TokenResponse, RegisterRequest, LoginRequest
+from ..schemas import TokenResponse, RegisterRequest, LoginRequest, ForgotPasswordRequest, ResetPasswordRequest
 from ..schemas.user import UserResponse
+from ..core.email_service import (
+    create_verification_token, create_reset_token,
+    send_verification_email, send_password_reset_email,
+)
 from ..db.queries.users import get_user_by_rut, get_user_by_email, create_user
 from .deps import get_current_user
 
@@ -134,6 +138,10 @@ def register(
     )
     logger.info("user_registered", email=user.email, rut=user.rut)
 
+    # Send verification email (non-blocking — don't fail registration if email fails)
+    verification_token = create_verification_token(user.rut)
+    send_verification_email(user.email, user.first_name, verification_token)
+
     token = create_access_token(data={"sub": user.rut, "email": user.email})
     return TokenResponse(
         access_token=token,
@@ -187,6 +195,117 @@ def login(
         token_type="bearer",
         user=UserResponse.model_validate(user),
     )
+
+
+# ── Email verification ───────────────────────────────────────────────────────
+
+
+@router.post(
+    "/verify-email",
+    summary="Verificar email con token",
+    responses={
+        400: {"description": "Token inválido o expirado"},
+    },
+)
+@limiter.limit("10/hour")
+def verify_email(
+    request: Request,
+    token: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    payload = verify_token(token)
+    if not payload or payload.get("purpose") != "email_verify":
+        raise HTTPException(status_code=400, detail="Token de verificación inválido o expirado")
+
+    rut = payload.get("sub")
+    user = get_user_by_rut(db, rut) if rut else None
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+
+    if user.email_verified:
+        return {"message": "Email ya verificado"}
+
+    user.email_verified = True
+    db.commit()
+    logger.info("email_verified", rut=user.rut, email=user.email)
+    return {"message": "Email verificado exitosamente"}
+
+
+@router.post(
+    "/resend-verification",
+    summary="Reenviar email de verificación",
+    responses={
+        429: {"description": "Demasiados intentos"},
+    },
+)
+@limiter.limit("3/hour")
+def resend_verification(
+    request: Request,
+    current_user=Depends(get_current_user),
+):
+    if current_user.email_verified:
+        return {"message": "Email ya verificado"}
+
+    token = create_verification_token(current_user.rut)
+    send_verification_email(current_user.email, current_user.first_name, token)
+    return {"message": "Email de verificación enviado"}
+
+
+# ── Password reset ──────────────────────────────────────────────────────────
+
+
+@router.post(
+    "/forgot-password",
+    summary="Solicitar reset de contraseña",
+    responses={
+        429: {"description": "Demasiados intentos"},
+    },
+)
+@limiter.limit("3/hour")
+def forgot_password(
+    request: Request,
+    body: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    # Always return success to prevent email enumeration
+    user = get_user_by_email(db, body.email)
+    if user:
+        token = create_reset_token(user.rut)
+        send_password_reset_email(user.email, user.first_name, token)
+        logger.info("password_reset_requested", rut=user.rut)
+
+    return {"message": "Si el email existe, recibirás instrucciones para restablecer tu contraseña."}
+
+
+@router.post(
+    "/reset-password",
+    summary="Restablecer contraseña con token",
+    responses={
+        400: {"description": "Token inválido o expirado"},
+    },
+)
+@limiter.limit("5/hour")
+def reset_password(
+    request: Request,
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    payload = verify_token(body.token)
+    if not payload or payload.get("purpose") != "password_reset":
+        raise HTTPException(status_code=400, detail="Token de reset inválido o expirado")
+
+    rut = payload.get("sub")
+    user = get_user_by_rut(db, rut) if rut else None
+    if not user:
+        raise HTTPException(status_code=400, detail="Usuario no encontrado")
+
+    user.password_hash = hash_password(body.new_password)
+    user.failed_login_attempts = 0
+    user.last_failed_login_at = None
+    db.commit()
+
+    logger.info("password_reset_completed", rut=user.rut)
+    return {"message": "Contraseña restablecida exitosamente"}
 
 
 # ── Gmail linking (OAuth for sync, NOT for login) ───────────────────────────

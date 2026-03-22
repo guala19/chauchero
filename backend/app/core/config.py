@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     SYNC_MAX_EMAILS: int = 2000
     SYNC_COOLDOWN_MINUTES: int = 5
 
+    # ── Email (Resend) ─────────────────────────────────────────────────────
+    RESEND_API_KEY: Optional[str] = None
+    EMAIL_FROM: str = "Chauchero <noreply@chauchero.app>"
+    PASSWORD_RESET_EXPIRE_MINUTES: int = 30
+    EMAIL_VERIFICATION_EXPIRE_HOURS: int = 24
+
     # ── Observability (optional) ──────────────────────────────────────────
     SENTRY_DSN: Optional[str] = None
 

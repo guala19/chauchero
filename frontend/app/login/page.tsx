@@ -88,12 +88,12 @@ export default function LoginPage() {
                 >
                   Contraseña
                 </label>
-                <a
-                  href="#"
+                <Link
+                  href="/forgot-password"
                   className="text-[10px] font-semibold text-primary hover:underline"
                 >
                   ¿Olvidaste la clave?
-                </a>
+                </Link>
               </div>
               <div className="relative">
                 <input
