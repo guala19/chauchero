@@ -1,0 +1,8 @@
+frontend/node_modules
+frontend/.next
+frontend/.env*
+_archive
+mobile
+.claude
+*.md
+!backend/**

@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && ./venv/bin/pytest *)",
+      "Bash(cd /Users/diego/Documents/Chauchero/backend && ./venv/bin/alembic *)",
+      "Bash(cd /Users/diego/Documents/Chauchero/frontend && npx tsc *)",
+      "Bash(cd /Users/diego/Documents/Chauchero/frontend && npm run *)",
+      "Bash(cd /Users/diego/Documents/Chauchero/frontend && npm install *)",
+      "Bash(docker compose *)",
+      "Bash(git status *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git diff)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(ls *)",
+      "Bash(ls)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command'); echo \"$cmd\" | grep -q 'git commit' || exit 0; git diff --cached --name-only | grep -q '^backend/' || exit 0; cd /Users/diego/Documents/Chauchero/backend && ./venv/bin/pytest tests/ --ignore=tests/smoke -q --tb=short 2>&1 | tail -20 || exit 2",
+            "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command'); echo \"$cmd\" | grep -q 'git commit' || exit 0; git diff --cached --name-only | grep -q '^frontend/' || exit 0; cd /Users/diego/Documents/Chauchero/frontend && npx tsc --noEmit 2>&1 | tail -20 || exit 2",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}
