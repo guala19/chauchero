@@ -32,6 +32,8 @@ def make_user(
     user.last_sync_at = last_sync_at
     user.is_syncing = is_syncing
     user.sync_started_at = sync_started_at
+    user.failed_login_attempts = 0
+    user.last_failed_login_at = None
     user.created_at = created_at or datetime.now(timezone.utc)
     user.updated_at = updated_at or datetime.now(timezone.utc)
     return user

@@ -1,6 +1,7 @@
 """Tests for email/password registration and login endpoints."""
 
 import pytest
+from datetime import datetime, timezone, timedelta
 from unittest.mock import patch, MagicMock
 
 # Patch create_all before importing app so it doesn't try to connect to the DB
@@ -11,6 +12,7 @@ with patch("app.core.database.engine") as _mock_engine:
     from app.core.database import get_db
 
 from app.core.password import hash_password, verify_password
+from app.core.rate_limiter import is_account_locked, MAX_FAILED_ATTEMPTS, LOCKOUT_DURATION_MINUTES
 from tests.factories import make_user
 
 VALID_RUT = "12.345.678-9"
@@ -118,8 +120,9 @@ class TestRegister:
 
 
 class TestLogin:
+    @patch("app.routers.auth.reset_failed_logins")
     @patch("app.routers.auth.get_user_by_email")
-    def test_login_success(self, mock_get_email, client):
+    def test_login_success(self, mock_get_email, mock_reset, client):
         hashed = hash_password("clave_segura_123")
         user = make_user(email="diego@ejemplo.cl", password_hash=hashed)
         mock_get_email.return_value = user
@@ -132,9 +135,11 @@ class TestLogin:
         data = res.json()
         assert "access_token" in data
         assert data["user"]["email"] == "diego@ejemplo.cl"
+        mock_reset.assert_called_once()
 
+    @patch("app.routers.auth.record_failed_login")
     @patch("app.routers.auth.get_user_by_email")
-    def test_login_wrong_password(self, mock_get_email, client):
+    def test_login_wrong_password_records_failure(self, mock_get_email, mock_record, client):
         hashed = hash_password("clave_correcta")
         user = make_user(email="diego@ejemplo.cl", password_hash=hashed)
         mock_get_email.return_value = user
@@ -144,7 +149,7 @@ class TestLogin:
             "password": "clave_incorrecta",
         })
         assert res.status_code == 401
-        assert "incorrectas" in res.json()["detail"].lower()
+        mock_record.assert_called_once()
 
     @patch("app.routers.auth.get_user_by_email")
     def test_login_nonexistent_email(self, mock_get_email, client):
@@ -156,3 +161,57 @@ class TestLogin:
         })
         assert res.status_code == 401
         assert "incorrectas" in res.json()["detail"].lower()
+
+
+# ── Account lockout ─────────────────────────────────────────────────────────
+
+
+class TestAccountLockout:
+    @patch("app.routers.auth.get_user_by_email")
+    def test_locked_account_returns_423(self, mock_get_email, client):
+        user = make_user(email="locked@ejemplo.cl", password_hash="anything")
+        user.failed_login_attempts = MAX_FAILED_ATTEMPTS
+        user.last_failed_login_at = datetime.now(timezone.utc)
+        mock_get_email.return_value = user
+
+        res = client.post("/auth/login", json={
+            "email": "locked@ejemplo.cl",
+            "password": "cualquier_clave",
+        })
+        assert res.status_code == 423
+        assert "bloqueada" in res.json()["detail"].lower()
+
+    def test_is_account_locked_under_threshold(self):
+        user = make_user()
+        user.failed_login_attempts = MAX_FAILED_ATTEMPTS - 1
+        user.last_failed_login_at = datetime.now(timezone.utc)
+        assert is_account_locked(user) is False
+
+    def test_is_account_locked_at_threshold(self):
+        user = make_user()
+        user.failed_login_attempts = MAX_FAILED_ATTEMPTS
+        user.last_failed_login_at = datetime.now(timezone.utc)
+        assert is_account_locked(user) is True
+
+    def test_lockout_expires_after_duration(self):
+        user = make_user()
+        user.failed_login_attempts = MAX_FAILED_ATTEMPTS
+        user.last_failed_login_at = datetime.now(timezone.utc) - timedelta(minutes=LOCKOUT_DURATION_MINUTES + 1)
+        assert is_account_locked(user) is False
+
+    @patch("app.routers.auth.reset_failed_logins")
+    @patch("app.routers.auth.get_user_by_email")
+    def test_successful_login_after_lockout_expires(self, mock_get_email, mock_reset, client):
+        """After lockout expires, user can login again."""
+        hashed = hash_password("clave_correcta")
+        user = make_user(email="recovered@ejemplo.cl", password_hash=hashed)
+        user.failed_login_attempts = MAX_FAILED_ATTEMPTS
+        user.last_failed_login_at = datetime.now(timezone.utc) - timedelta(minutes=LOCKOUT_DURATION_MINUTES + 1)
+        mock_get_email.return_value = user
+
+        res = client.post("/auth/login", json={
+            "email": "recovered@ejemplo.cl",
+            "password": "clave_correcta",
+        })
+        assert res.status_code == 200
+        mock_reset.assert_called_once()

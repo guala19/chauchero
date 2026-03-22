@@ -1,11 +1,14 @@
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Header, Query
+from fastapi import APIRouter, Depends, HTTPException, Header, Query, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..core.config import settings
 from ..core.security import create_access_token, verify_token
 from ..core.password import hash_password, verify_password
+from ..core.rate_limiter import (
+    limiter, record_failed_login, reset_failed_logins, is_account_locked,
+)
 from ..services.auth_service import AuthService
 from ..schemas import TokenResponse, RegisterRequest, LoginRequest
 from ..schemas.user import UserResponse
@@ -64,7 +67,9 @@ def refresh_token(
         401: {"description": "Token inválido o expirado hace más de 24 horas"},
     },
 )
+@limiter.limit("10/hour")
 def refresh_expired_token(
+    request: Request,
     authorization: str = Header(..., description="Bearer <expired_token>"),
     db: Session = Depends(get_db),
 ):
@@ -102,9 +107,15 @@ def refresh_expired_token(
     summary="Registro con email y contraseña",
     responses={
         409: {"description": "El email o RUT ya está registrado"},
+        429: {"description": "Demasiados intentos de registro"},
     },
 )
-def register(body: RegisterRequest, db: Session = Depends(get_db)):
+@limiter.limit("3/hour")
+def register(
+    request: Request,
+    body: RegisterRequest,
+    db: Session = Depends(get_db),
+):
     existing = get_user_by_email(db, body.email)
     if existing:
         raise HTTPException(status_code=409, detail="Este email ya está registrado")
@@ -137,17 +148,35 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     summary="Login con email y contraseña",
     responses={
         401: {"description": "Credenciales incorrectas"},
+        423: {"description": "Cuenta bloqueada temporalmente"},
+        429: {"description": "Demasiados intentos de login"},
     },
 )
-def login(body: LoginRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(
+    request: Request,
+    body: LoginRequest,
+    db: Session = Depends(get_db),
+):
     user = get_user_by_email(db, body.email)
 
     if not user or not user.password_hash:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
+    # Check account lockout
+    if is_account_locked(user):
+        logger.warning("login_blocked_locked_account", rut=user.rut)
+        raise HTTPException(
+            status_code=423,
+            detail="Cuenta bloqueada temporalmente por demasiados intentos fallidos. Intenta en 15 minutos.",
+        )
+
     if not verify_password(body.password, user.password_hash):
+        record_failed_login(db, user)
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
+    # Successful login — reset failed attempts
+    reset_failed_logins(db, user)
     logger.info("user_login", email=user.email, rut=user.rut)
 
     token = create_access_token(data={"sub": user.rut, "email": user.email})

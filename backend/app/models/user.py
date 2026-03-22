@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, Text, Boolean
+from sqlalchemy import Column, String, DateTime, Text, Boolean, Integer
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from ..core.database import Base
@@ -21,6 +21,10 @@ class User(Base):
     # Sync lock — prevents simultaneous syncs for the same user
     is_syncing = Column(Boolean, default=False, nullable=False)
     sync_started_at = Column(DateTime, nullable=True)
+
+    # Account lockout — brute force protection
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    last_failed_login_at = Column(DateTime, nullable=True)
 
     bank_accounts = relationship("BankAccount", back_populates="user", cascade="all, delete-orphan")
 
