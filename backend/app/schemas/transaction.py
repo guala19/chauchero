@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 
@@ -36,6 +36,12 @@ class TransactionResponse(TransactionBase):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class PaginatedTransactions(BaseModel):
+    items: List[TransactionResponse]
+    next_cursor: Optional[str] = None
+    has_more: bool = False
 
 
 class SyncStats(BaseModel):

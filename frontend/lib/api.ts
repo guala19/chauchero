@@ -69,6 +69,12 @@ export interface ApiUser {
 // Cache is per-user: userId in the URL differentiates cache keys,
 // and per-user tags allow targeted revalidation after sync.
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  next_cursor: string | null;
+  has_more: boolean;
+}
+
 export async function fetchTransactions(
   token: string,
   limit = 500,
@@ -80,7 +86,8 @@ export async function fetchTransactions(
     headers: { Authorization: `Bearer ${token}` },
   });
   await throwIfNotOk(res);
-  return res.json();
+  const data: PaginatedResponse<ApiTransaction> = await res.json();
+  return data.items;
 }
 
 export async function fetchUser(token: string): Promise<ApiUser | null> {

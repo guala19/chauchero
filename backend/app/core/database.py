@@ -8,6 +8,8 @@ engine = create_engine(
     echo=False,
     pool_size=10,
     max_overflow=20,
+    pool_recycle=1800,  # Recycle connections every 30 min (prevents stale connections)
+    pool_timeout=30,    # Wait up to 30s for a connection before raising
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

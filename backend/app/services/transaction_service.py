@@ -137,9 +137,20 @@ class TransactionService:
         account_id: Optional[str] = None,
         limit: int = 50,
         offset: int = 0,
+        cursor_date: Optional[str] = None,
+        cursor_id: Optional[str] = None,
     ) -> List[Transaction]:
+        from datetime import datetime
+        parsed_date = None
+        if cursor_date:
+            parsed_date = datetime.fromisoformat(cursor_date)
         return get_user_transactions(
-            self.db, user, account_id=account_id, limit=limit, offset=offset
+            self.db, user,
+            account_id=account_id,
+            limit=limit,
+            offset=offset,
+            cursor_date=parsed_date,
+            cursor_id=cursor_id,
         )
 
     def update_transaction(

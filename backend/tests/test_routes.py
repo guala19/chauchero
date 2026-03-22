@@ -81,22 +81,26 @@ class TestBanksEndpoint:
 
 class TestListTransactions:
     @patch("app.routers.transactions.TransactionService")
-    def test_returns_list(self, MockService, client, user):
+    def test_returns_paginated(self, MockService, client, user):
         tx = make_transaction()
         MockService.return_value.list_transactions.return_value = [tx]
 
         res = client.get("/transactions/")
         assert res.status_code == 200
         data = res.json()
-        assert isinstance(data, list)
-        assert len(data) == 1
+        assert "items" in data
+        assert len(data["items"]) == 1
+        assert data["has_more"] is False
+        assert data["next_cursor"] is None
 
     @patch("app.routers.transactions.TransactionService")
     def test_empty_list(self, MockService, client):
         MockService.return_value.list_transactions.return_value = []
         res = client.get("/transactions/")
         assert res.status_code == 200
-        assert res.json() == []
+        data = res.json()
+        assert data["items"] == []
+        assert data["has_more"] is False
 
     @patch("app.routers.transactions.TransactionService")
     def test_pagination_params(self, MockService, client, user):
@@ -104,7 +108,8 @@ class TestListTransactions:
         res = client.get("/transactions/?limit=10&offset=20")
         assert res.status_code == 200
         call_kwargs = MockService.return_value.list_transactions.call_args
-        assert call_kwargs.kwargs["limit"] == 10
+        # Router requests limit+1 to detect has_more
+        assert call_kwargs.kwargs["limit"] == 11
         assert call_kwargs.kwargs["offset"] == 20
 
     def test_requires_auth(self, unauth_client):

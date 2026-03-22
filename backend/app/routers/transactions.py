@@ -16,6 +16,7 @@ from ..schemas import (
     DebugGmailQueryResponse,
     DebugGmailScanResponse,
 )
+from ..schemas.transaction import PaginatedTransactions
 from .deps import get_current_user
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
@@ -161,11 +162,11 @@ def debug_gmail_scan(
 
 @router.get(
     "/",
-    response_model=List[TransactionResponse],
+    response_model=PaginatedTransactions,
     summary="Listar transacciones",
     description=(
         "Retorna las transacciones del usuario autenticado, ordenadas por fecha descendente. "
-        "Soporta filtro por cuenta bancaria y paginación."
+        "Soporta paginación por cursor (recomendado) o por offset (legacy)."
     ),
     responses={
         401: {"description": "Token JWT inválido o expirado"},
@@ -174,17 +175,37 @@ def debug_gmail_scan(
 def list_transactions(
     account_id: Optional[UUID] = Query(None, description="Filtrar por ID de cuenta bancaria"),
     limit: int = Query(500, ge=1, le=2000, description="Número de resultados a retornar"),
-    offset: int = Query(0, ge=0, description="Número de resultados a saltar (para paginación)"),
+    offset: int = Query(0, ge=0, description="Offset (legacy, usar cursor_date/cursor_id en su lugar)"),
+    cursor_date: Optional[str] = Query(None, description="Cursor: fecha ISO de la última transacción vista"),
+    cursor_id: Optional[str] = Query(None, description="Cursor: UUID de la última transacción vista"),
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    # Fetch limit+1 to detect if there are more results
     transactions = TransactionService(db).list_transactions(
         user=current_user,
         account_id=str(account_id) if account_id else None,
-        limit=limit,
+        limit=limit + 1,
         offset=offset,
+        cursor_date=cursor_date,
+        cursor_id=cursor_id,
     )
-    return [TransactionResponse.model_validate(t) for t in transactions]
+
+    has_more = len(transactions) > limit
+    items = transactions[:limit]
+
+    next_cursor_date = None
+    next_cursor_id = None
+    if has_more and items:
+        last = items[-1]
+        next_cursor_date = last.transaction_date.isoformat()
+        next_cursor_id = str(last.id)
+
+    return PaginatedTransactions(
+        items=[TransactionResponse.model_validate(t) for t in items],
+        next_cursor=f"{next_cursor_date}|{next_cursor_id}" if has_more else None,
+        has_more=has_more,
+    )
 
 
 @router.patch(

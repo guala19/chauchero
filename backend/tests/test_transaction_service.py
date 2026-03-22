@@ -281,7 +281,8 @@ class TestListTransactions:
         result = service.list_transactions(user, limit=10, offset=5)
 
         mock_query.assert_called_once_with(
-            service.db, user, account_id=None, limit=10, offset=5
+            service.db, user, account_id=None, limit=10, offset=5,
+            cursor_date=None, cursor_id=None,
         )
         assert len(result) == 1
 

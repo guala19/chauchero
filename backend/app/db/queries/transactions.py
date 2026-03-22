@@ -1,6 +1,8 @@
 import uuid
-from typing import List, Optional
+from datetime import datetime
+from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
+from sqlalchemy import and_, or_, tuple_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from ...models import Transaction, BankAccount, User
 
@@ -12,7 +14,19 @@ def get_user_transactions(
     account_id: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
+    cursor_date: Optional[datetime] = None,
+    cursor_id: Optional[str] = None,
 ) -> List[Transaction]:
+    """
+    Fetch user transactions ordered by transaction_date DESC.
+
+    Supports both OFFSET pagination (legacy) and cursor pagination:
+    - OFFSET: pass limit + offset (slow for large offsets)
+    - Cursor: pass limit + cursor_date + cursor_id (fast, stable)
+
+    Cursor uses (transaction_date, id) for stable ordering when
+    multiple transactions share the same date.
+    """
     query = (
         db.query(Transaction)
         .join(BankAccount)
@@ -24,10 +38,24 @@ def get_user_transactions(
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
 
+    # Cursor pagination: fetch rows "after" the cursor position
+    if cursor_date is not None and cursor_id is not None:
+        query = query.filter(
+            or_(
+                Transaction.transaction_date < cursor_date,
+                and_(
+                    Transaction.transaction_date == cursor_date,
+                    Transaction.id > uuid.UUID(cursor_id),
+                ),
+            )
+        )
+
     return (
-        query.order_by(Transaction.transaction_date.desc())
+        query.order_by(
+            Transaction.transaction_date.desc(),
+            Transaction.id.asc(),
+        )
         .limit(limit)
-        .offset(offset)
         .all()
     )
 
