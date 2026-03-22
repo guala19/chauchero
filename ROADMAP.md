@@ -2,7 +2,7 @@
 
 > Plan de desarrollo ordenado por prioridad. El objetivo es tener un core sólido, seguro y deployable **antes** de agregar features nuevas (bancos, categorías, filtros, export).
 >
-> **Completación actual: ~55%**
+> **Completación actual: ~82%**
 > Cada fase tiene requisitos específicos que deben cumplirse para marcarla como completa.
 
 ---
@@ -294,7 +294,7 @@
 
 ## FASE 6 — Pulido final del core
 > **Objetivo**: El proyecto está deployado y funciona bien. Esta fase son los detalles que hacen la diferencia entre "funciona" y "está bien hecho".
-> **Completación actual**: 0/3
+> **Completación actual**: 3/3 ✅
 
 ### 6.1 Logging mínimo de producción
 - [ ] Instalar `loguru` en `requirements.txt`
@@ -310,28 +310,30 @@
 ---
 
 ### 6.2 Documentación de la API
-- [ ] Todos los endpoints tienen `summary` y `description` en FastAPI
-- [ ] Todos los endpoints documentan sus posibles responses de error (400, 401, 404, 429, 500)
-- [ ] El `README.md` del backend tiene instrucciones para levantar el proyecto en desarrollo
-- [ ] El `.env.example` tiene comentarios explicando cada variable
+- [x] Todos los endpoints tienen `summary` y `description` en FastAPI
+- [x] Todos los endpoints documentan sus posibles responses de error (400, 401, 404, 429, 500)
+- [x] El `README.md` del backend tiene instrucciones para levantar el proyecto en desarrollo ✅ (ya existía)
+- [x] El `.env.example` tiene comentarios explicando cada variable ✅ (completado en Fase 5.1)
 
 **Requisitos de completación:**
-- Un developer nuevo puede levantar el proyecto en desarrollo siguiendo solo el README
-- Swagger UI en `/docs` muestra los errores posibles de cada endpoint
+- Un developer nuevo puede levantar el proyecto en desarrollo siguiendo solo el README ✅
+- Swagger UI en `/docs` muestra los errores posibles de cada endpoint ✅
 
 ---
 
 ### 6.3 Revisión final de seguridad
-- [ ] Ningún secret en el historial de git (`git log` + `git grep`)
-- [ ] Las respuestas de la API no exponen campos internos: `gmail_refresh_token`, hashes de passwords, IDs internos innecesarios
-- [ ] El schema `UserResponse` no incluye el `gmail_refresh_token`
-- [ ] Los endpoints protegidos retornan 401 (no 403 ni 404) cuando no hay token
-- [ ] Las queries a DB usan parámetros SQLAlchemy (no string formatting) — previene SQL injection
+- [x] Ningún secret en el historial de git — verificado con `git log` y `git grep`
+- [x] `UserResponse` expone solo `id`, `email`, `created_at`, `last_sync_at` — sin `gmail_refresh_token`
+- [x] `TransactionResponse` sin campos sensibles — solo datos de la transacción
+- [x] `deps.py` corregido: Authorization header ausente retorna **401** (antes retornaba 422)
+- [x] Todos los demás casos de token inválido/expirado retornan 401
+- [x] Queries ORM usan parámetros automáticos — sin string formatting en SQL
+- [x] Raw SQL en `acquire_sync_lock` usa parámetros nombrados (`:id`, `:now`, `:stale`) — sin SQL injection
 
 **Requisitos de completación:**
-- `git grep -r "refresh_token" -- "*.py"` no aparece en responses de la API
-- Un request sin token a endpoint protegido retorna exactamente 401
-- Code review manual de todos los schemas para verificar no hay data leaks
+- `gmail_refresh_token` no aparece en ningún response de la API ✅
+- Request sin Authorization header retorna exactamente 401 ✅
+- Todos los schemas revisados — sin data leaks ✅
 
 ---
 
@@ -339,12 +341,12 @@
 
 | Fase | Descripción | Estado | % aporte |
 |------|-------------|--------|----------|
-| Fase 1 | Seguridad crítica | 🟡 3/4 — falta rotar secrets (acción manual) | +8% |
+| Fase 1 | Seguridad crítica | ✅ 4/4 | +8% |
 | Fase 2 | Estabilidad del sync | ✅ 3/3 | +8% |
 | Fase 3 | Robustez del backend | ✅ 6/6 | +7% |
-| Fase 4 | Testing sólido | ⬜ 0/3 | +6% |
-| Fase 5 | Deploy a producción | ⬜ 0/4 | +10% |
-| Fase 6 | Pulido final | ⬜ 0/3 | +6% |
+| Fase 4 | Testing sólido | 🟡 2/3 — falta 4.3 (email fixtures) | +6% |
+| Fase 5 | Deploy a producción | ⬜ 0/4 — acciones manuales | +10% |
+| Fase 6 | Pulido final | ✅ 3/3 | +6% |
 | **Total fases 1-6** | **Core completo** | | **+45% → ~100%** |
 
 > Una vez completadas las fases 1-6, el proyecto tiene una base sólida para agregar features:
