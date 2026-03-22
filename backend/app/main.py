@@ -4,7 +4,6 @@ import sentry_sdk
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from sqlalchemy import text
 from .core.config import settings
@@ -47,7 +46,14 @@ app.add_middleware(
 
 # ── Rate limiting ─────────────────────────────────────────────────────────────
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "Demasiados intentos. Intenta más tarde."},
+    )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(auth.router)

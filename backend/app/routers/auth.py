@@ -161,6 +161,8 @@ def login(
     user = get_user_by_email(db, body.email)
 
     if not user or not user.password_hash:
+        # Dummy hash to prevent timing attacks (email enumeration)
+        verify_password("dummy", hash_password("dummy"))
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
 
     # Check account lockout
