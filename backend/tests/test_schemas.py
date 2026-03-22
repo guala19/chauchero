@@ -97,16 +97,20 @@ class TestSyncSchemas:
 class TestUserSchemas:
     def test_user_response(self):
         resp = UserResponse(
-            id=uuid4(),
+            rut="12.345.678-9",
             email="test@example.com",
+            first_name="Test",
+            last_name="User",
             created_at=datetime(2026, 1, 1),
         )
         assert resp.last_sync_at is None
 
     def test_token_response(self):
         user = UserResponse(
-            id=uuid4(),
+            rut="12.345.678-9",
             email="test@example.com",
+            first_name="Test",
+            last_name="User",
             created_at=datetime(2026, 1, 1),
         )
         resp = TokenResponse(

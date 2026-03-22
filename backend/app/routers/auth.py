@@ -1,65 +1,20 @@
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..core.config import settings
 from ..core.security import create_access_token, verify_token
+from ..core.password import hash_password, verify_password
 from ..services.auth_service import AuthService
-from ..schemas import TokenResponse
+from ..schemas import TokenResponse, RegisterRequest, LoginRequest
 from ..schemas.user import UserResponse
-from ..db.queries.users import get_user_by_id
+from ..db.queries.users import get_user_by_rut, get_user_by_email, create_user
 from .deps import get_current_user
 
 logger = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-
-@router.get(
-    "/google/login",
-    summary="Iniciar OAuth con Google",
-    description="Retorna la URL de autorización de Google. El cliente debe redirigir al usuario a esa URL.",
-)
-def google_login(db: Session = Depends(get_db)):
-    auth_service = AuthService(db)
-    auth_url, state = auth_service.get_authorization_url()
-    return {"auth_url": auth_url, "state": state}
-
-
-@router.get(
-    "/google/callback",
-    summary="Callback OAuth de Google",
-    description=(
-        "Endpoint al que Google redirige tras la autenticación. "
-        "Intercambia el código por tokens, crea o actualiza el usuario en DB, "
-        "y redirige al frontend con el JWT en la query string."
-    ),
-    responses={
-        400: {"description": "OAuth falló — código inválido, state incorrecto, o error de Google"},
-    },
-)
-def google_callback(
-    code: str = Query(...),
-    state: str = Query(...),
-    db: Session = Depends(get_db),
-):
-    try:
-        auth_service = AuthService(db)
-        result = auth_service.handle_oauth_callback(code, state)
-        return RedirectResponse(
-            url=f"{settings.FRONTEND_URL}/auth/callback?token={result['access_token']}"
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error("OAuth callback error: %s", e, exc_info=True)
-        # Never expose internal error details to the client
-        if settings.ENVIRONMENT == "development":
-            detail = f"OAuth error: {e}"
-        else:
-            detail = "Authentication failed. Please try again."
-        raise HTTPException(status_code=400, detail=detail)
 
 
 @router.get(
@@ -72,8 +27,7 @@ def google_callback(
     },
 )
 def get_me(current_user=Depends(get_current_user)):
-    from ..core.security import create_access_token
-    token = create_access_token(data={"sub": str(current_user.id), "email": current_user.email})
+    token = create_access_token(data={"sub": current_user.rut, "email": current_user.email})
     return TokenResponse(
         access_token=token,
         token_type="bearer",
@@ -85,11 +39,6 @@ def get_me(current_user=Depends(get_current_user)):
     "/refresh",
     response_model=TokenResponse,
     summary="Renovar JWT (token válido)",
-    description=(
-        "Extiende la sesión emitiendo un nuevo JWT. "
-        "El token actual debe estar vigente. "
-        "Si ya expiró pero tiene menos de 24h, usar POST /auth/refresh-expired."
-    ),
     responses={
         401: {"description": "Token ausente, inválido o expirado"},
     },
@@ -98,7 +47,7 @@ def refresh_token(
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    new_token = create_access_token(data={"sub": str(current_user.id), "email": current_user.email})
+    new_token = create_access_token(data={"sub": current_user.rut, "email": current_user.email})
     return TokenResponse(
         access_token=new_token,
         token_type="bearer",
@@ -110,11 +59,7 @@ def refresh_token(
     "/refresh-expired",
     response_model=TokenResponse,
     summary="Renovar JWT (token expirado con grace period)",
-    description=(
-        "Permite renovar un token expirado dentro de las últimas 24 horas. "
-        "Usar cuando POST /auth/refresh falla con 401 por expiración. "
-        "Tokens expirados hace más de 24h son rechazados — el usuario debe volver a hacer login."
-    ),
+    description="Permite renovar un token expirado dentro de las últimas 24 horas.",
     responses={
         401: {"description": "Token inválido o expirado hace más de 24 horas"},
     },
@@ -135,17 +80,132 @@ def refresh_expired_token(
             detail="Token expirado hace más de 24 horas. Por favor, vuelve a iniciar sesión.",
         )
 
-    user_id = payload.get("sub")
-    if not user_id:
+    rut = payload.get("sub")
+    if not rut:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
-    user = get_user_by_id(db, user_id)
+    user = get_user_by_rut(db, rut)
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 
-    new_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    new_token = create_access_token(data={"sub": user.rut, "email": user.email})
     return TokenResponse(
         access_token=new_token,
         token_type="bearer",
         user=UserResponse.model_validate(user),
     )
+
+
+@router.post(
+    "/register",
+    response_model=TokenResponse,
+    summary="Registro con email y contraseña",
+    responses={
+        409: {"description": "El email o RUT ya está registrado"},
+    },
+)
+def register(body: RegisterRequest, db: Session = Depends(get_db)):
+    existing = get_user_by_email(db, body.email)
+    if existing:
+        raise HTTPException(status_code=409, detail="Este email ya está registrado")
+
+    existing_rut = get_user_by_rut(db, body.rut)
+    if existing_rut:
+        raise HTTPException(status_code=409, detail="Este RUT ya está registrado")
+
+    user = create_user(
+        db,
+        rut=body.rut,
+        email=body.email,
+        password_hash=hash_password(body.password),
+        first_name=body.first_name,
+        last_name=body.last_name,
+    )
+    logger.info("user_registered", email=user.email, rut=user.rut)
+
+    token = create_access_token(data={"sub": user.rut, "email": user.email})
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    summary="Login con email y contraseña",
+    responses={
+        401: {"description": "Credenciales incorrectas"},
+    },
+)
+def login(body: LoginRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, body.email)
+
+    if not user or not user.password_hash:
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+
+    if not verify_password(body.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+
+    logger.info("user_login", email=user.email, rut=user.rut)
+
+    token = create_access_token(data={"sub": user.rut, "email": user.email})
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserResponse.model_validate(user),
+    )
+
+
+# ── Gmail linking (OAuth for sync, NOT for login) ───────────────────────────
+
+
+@router.get(
+    "/google/login",
+    summary="Iniciar vinculación de Gmail",
+    description=(
+        "Retorna la URL de autorización de Google para vincular Gmail. "
+        "El usuario debe estar autenticado. Esto NO es login — es para "
+        "conectar la cuenta de Gmail y habilitar la sincronización de emails."
+    ),
+)
+def google_login(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    auth_url, state = auth_service.get_authorization_url()
+    return {"auth_url": auth_url, "state": state}
+
+
+@router.get(
+    "/google/callback",
+    summary="Callback de vinculación Gmail",
+    description=(
+        "Endpoint al que Google redirige tras la autorización. "
+        "Vincula los tokens de Gmail al usuario autenticado."
+    ),
+    responses={
+        400: {"description": "OAuth falló"},
+    },
+)
+def google_callback(
+    code: str = Query(...),
+    state: str = Query(...),
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        auth_service = AuthService(db)
+        auth_service.link_gmail_account(code, state, current_user)
+        return RedirectResponse(
+            url=f"{settings.FRONTEND_URL}/dashboard/settings?gmail=linked"
+        )
+    except Exception as e:
+        logger.error("Gmail link error: %s", e, exc_info=True)
+        if settings.ENVIRONMENT == "development":
+            detail = f"Gmail link error: {e}"
+        else:
+            detail = "Error al vincular Gmail. Intenta nuevamente."
+        raise HTTPException(status_code=400, detail=detail)

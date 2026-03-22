@@ -12,7 +12,7 @@ def get_or_create_account(
     currency: str = "CLP",
 ) -> BankAccount:
     query = db.query(BankAccount).filter(
-        BankAccount.user_id == user.id,
+        BankAccount.user_rut == user.rut,
         BankAccount.bank_name == bank_name,
     )
     if last_4_digits:
@@ -23,7 +23,7 @@ def get_or_create_account(
         return account
 
     account = BankAccount(
-        user_id=user.id,
+        user_rut=user.rut,
         bank_name=bank_name,
         last_4_digits=last_4_digits,
         currency=currency,

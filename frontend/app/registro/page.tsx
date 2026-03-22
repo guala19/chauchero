@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 function getPasswordStrength(password: string) {
@@ -24,11 +25,76 @@ function getLabelColor(level: number) {
 }
 
 export default function RegistroPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [rut, setRut] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+
+    if (!rut.trim()) {
+      setError("El RUT es obligatorio");
+      return;
+    }
+    if (!/^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$/.test(rut.trim())) {
+      setError("El RUT debe tener formato XX.XXX.XXX-X");
+      return;
+    }
+    if (password.length < 8) {
+      setError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      return;
+    }
+    if (!acceptTerms) {
+      setError("Debes aceptar los términos y condiciones");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          confirm_password: confirmPassword,
+          first_name: firstName,
+          last_name: lastName,
+          rut: rut.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.detail || "Error al crear la cuenta");
+        return;
+      }
+
+      router.push(`/auth/callback?token=${data.access_token}`);
+    } catch {
+      setError("No se pudo conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 md:p-12 text-foreground">
@@ -51,40 +117,15 @@ export default function RegistroPage() {
           </p>
         </div>
 
-        {/* Google Button */}
-        <button className="w-full py-[13px] px-6 bg-card border border-border rounded-[10px] flex items-center justify-center gap-3 transition-colors hover:opacity-90 active:scale-[0.98] duration-200">
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-              fill="#4285F4"
-            />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853"
-            />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              fill="#FBBC05"
-            />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335"
-            />
-          </svg>
-          <span className="text-sm font-semibold">Continuar con Google</span>
-        </button>
-
-        {/* Separator */}
-        <div className="flex items-center gap-4 py-8">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-[10px] font-medium text-muted-foreground/60 uppercase">
-            o
-          </span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 text-sm text-destructive bg-destructive/10 rounded-lg px-4 py-3">
+            {error}
+          </div>
+        )}
 
         {/* Registration Form */}
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           {/* Name Row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -94,6 +135,9 @@ export default function RegistroPage() {
               <input
                 type="text"
                 placeholder="Diego"
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none"
               />
             </div>
@@ -104,6 +148,9 @@ export default function RegistroPage() {
               <input
                 type="text"
                 placeholder="González"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
                 className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none"
               />
             </div>
@@ -117,6 +164,9 @@ export default function RegistroPage() {
             <input
               type="text"
               placeholder="12.345.678-9"
+              required
+              value={rut}
+              onChange={(e) => setRut(e.target.value)}
               className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none tabular"
             />
             <p className="text-[9px] text-muted-foreground/60 px-0.5">
@@ -132,6 +182,9 @@ export default function RegistroPage() {
             <input
               type="email"
               placeholder="nombre@ejemplo.cl"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none"
             />
           </div>
@@ -146,6 +199,7 @@ export default function RegistroPage() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Mínimo 8 caracteres"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none"
@@ -192,6 +246,9 @@ export default function RegistroPage() {
                 id="confirm-password"
                 type={showConfirm ? "text" : "password"}
                 placeholder="Repite tu contraseña"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full h-[52px] bg-card border border-border rounded-[10px] px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:ring-0 focus:border-foreground transition-all outline-none"
               />
               <button
@@ -211,6 +268,8 @@ export default function RegistroPage() {
             <div className="flex items-center h-5">
               <input
                 type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
                 className="h-4 w-4 rounded-[4px] border-border bg-card text-foreground focus:ring-0 focus:ring-offset-0 accent-foreground"
               />
             </div>
@@ -231,9 +290,10 @@ export default function RegistroPage() {
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full py-[15px] bg-primary text-primary-foreground font-semibold text-sm rounded-[10px] transition-all hover:opacity-90 active:opacity-80 active:scale-[0.98] duration-200"
+              disabled={loading || !acceptTerms}
+              className="w-full py-[15px] bg-primary text-primary-foreground font-semibold text-sm rounded-[10px] transition-all hover:opacity-90 active:opacity-80 active:scale-[0.98] duration-200 disabled:opacity-50 disabled:pointer-events-none"
             >
-              Crear cuenta
+              {loading ? "Creando cuenta..." : "Crear cuenta"}
             </button>
           </div>
         </form>

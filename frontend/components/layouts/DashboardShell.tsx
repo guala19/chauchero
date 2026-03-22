@@ -9,7 +9,7 @@ import { revalidateTransactions } from "@/app/actions";
 
 interface DashboardShellProps {
   children: React.ReactNode;
-  user: { id: string; email: string; name: string; last_sync_at: string | null };
+  user: { rut: string; email: string; name: string; last_sync_at: string | null };
 }
 
 export default function DashboardShell({ children, user }: DashboardShellProps) {
@@ -32,7 +32,7 @@ export default function DashboardShell({ children, user }: DashboardShellProps) 
     }
     const data = await res.json();
     setLastSyncAt(new Date().toISOString());
-    await revalidateTransactions(user.id);
+    await revalidateTransactions(user.rut);
     router.refresh();
     return data.stats ?? data;
   }, [router]);

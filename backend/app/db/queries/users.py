@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from ...models import User
 
 
-def get_user_by_id(db: Session, user_id: str) -> Optional[User]:
-    return db.query(User).filter(User.id == user_id).first()
+def get_user_by_rut(db: Session, rut: str) -> Optional[User]:
+    return db.query(User).filter(User.rut == rut).first()
 
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
@@ -15,12 +15,20 @@ def get_user_by_email(db: Session, email: str) -> Optional[User]:
 def create_user(
     db: Session,
     *,
+    rut: str,
     email: str,
+    password_hash: str,
+    first_name: str,
+    last_name: str,
     gmail_refresh_token: Optional[str] = None,
     gmail_token_expires_at: Optional[datetime] = None,
 ) -> User:
     user = User(
+        rut=rut,
         email=email,
+        password_hash=password_hash,
+        first_name=first_name,
+        last_name=last_name,
         gmail_refresh_token=gmail_refresh_token,
         gmail_token_expires_at=gmail_token_expires_at,
     )
@@ -65,19 +73,17 @@ def acquire_sync_lock(db: Session, user: User) -> bool:
     now = datetime.now(timezone.utc)
     stale_threshold = now - timedelta(minutes=10)
 
-    # Atomically acquire the lock.
-    # Succeeds when:  not locked  OR  lock is stale (> 10 min old)  OR  sync_started_at is NULL
     result = db.execute(
         text(
             "UPDATE users "
             "SET is_syncing = true, sync_started_at = :now "
-            "WHERE id = :id "
+            "WHERE rut = :rut "
             "  AND (is_syncing = false "
             "       OR sync_started_at IS NULL "
             "       OR sync_started_at < :stale) "
-            "RETURNING id"
+            "RETURNING rut"
         ),
-        {"id": str(user.id), "now": now, "stale": stale_threshold},
+        {"rut": user.rut, "now": now, "stale": stale_threshold},
     )
     db.commit()
     acquired = result.fetchone() is not None
@@ -88,14 +94,11 @@ def acquire_sync_lock(db: Session, user: User) -> bool:
 
 
 def release_sync_lock(db: Session, user: User) -> None:
-    """Release the sync lock. Always called in a finally block.
-    Uses raw SQL for consistency with acquire_sync_lock and to avoid
-    ORM state issues after rollbacks during email processing.
-    """
+    """Release the sync lock. Always called in a finally block."""
     from sqlalchemy import text
     db.execute(
-        text("UPDATE users SET is_syncing = false, sync_started_at = NULL WHERE id = :id"),
-        {"id": str(user.id)},
+        text("UPDATE users SET is_syncing = false, sync_started_at = NULL WHERE rut = :rut"),
+        {"rut": user.rut},
     )
     db.commit()
     user.is_syncing = False

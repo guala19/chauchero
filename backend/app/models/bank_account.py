@@ -8,9 +8,9 @@ from ..core.database import Base
 
 class BankAccount(Base):
     __tablename__ = "bank_accounts"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_rut = Column(String(12), ForeignKey("users.rut", ondelete="CASCADE"), nullable=False)
     bank_name = Column(String(100), nullable=False)
     last_4_digits = Column(String(4), nullable=True)
     account_type = Column(String(50), nullable=True)

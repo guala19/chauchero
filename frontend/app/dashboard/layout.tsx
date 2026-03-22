@@ -17,7 +17,7 @@ function decodeJwt(token: string): JwtPayload | null {
     if (!part) return null;
     const json = Buffer.from(part, "base64url").toString("utf-8");
     const payload = JSON.parse(json) as JwtPayload;
-    // Require at least a user ID
+    // Require at least a user RUT
     if (!payload.sub) return null;
     return payload;
   } catch {
@@ -52,7 +52,7 @@ export default async function DashboardLayout({
   return (
     <DashboardShell
       user={{
-        id: payload.sub,
+        rut: payload.sub,
         email,
         name: nameFromEmail(email),
         last_sync_at: null, // fetched lazily by the header after mount

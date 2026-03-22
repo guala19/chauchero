@@ -16,7 +16,7 @@ def get_user_transactions(
     query = (
         db.query(Transaction)
         .join(BankAccount)
-        .filter(BankAccount.user_id == user.id)
+        .filter(BankAccount.user_rut == user.rut)
     )
     if account_id:
         query = query.filter(Transaction.account_id == account_id)
@@ -37,7 +37,7 @@ def get_user_transaction_by_id(
     return (
         db.query(Transaction)
         .join(BankAccount)
-        .filter(Transaction.id == transaction_id, BankAccount.user_id == user.id)
+        .filter(Transaction.id == transaction_id, BankAccount.user_rut == user.rut)
         .first()
     )
 

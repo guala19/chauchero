@@ -161,7 +161,7 @@ class TransactionService:
             self.db.query(Transaction)
             .join(Transaction.account)
             .filter(
-                Transaction.account.has(user_id=user.id),
+                Transaction.account.has(user_rut=user.rut),
                 Transaction.category.is_(None),
             )
             .all()

@@ -2,7 +2,7 @@ from typing import Optional
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from ..core.database import get_db
-from ..db.queries.users import get_user_by_id
+from ..db.queries.users import get_user_by_rut
 from ..core.security import verify_token
 from ..models import User
 
@@ -20,11 +20,11 @@ def get_current_user(
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-    user_id = payload.get("sub")
-    if not user_id:
+    rut = payload.get("sub")
+    if not rut:
         raise HTTPException(status_code=401, detail="Invalid token payload")
 
-    user = get_user_by_id(db, user_id)
+    user = get_user_by_rut(db, rut)
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
 

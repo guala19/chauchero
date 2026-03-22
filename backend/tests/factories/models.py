@@ -8,8 +8,11 @@ from unittest.mock import MagicMock
 
 def make_user(
     *,
-    id=None,
+    rut="12.345.678-9",
     email="test@example.com",
+    password_hash=None,
+    first_name="Test",
+    last_name="User",
     gmail_refresh_token="fake-refresh-token",
     gmail_token_expires_at=None,
     last_sync_at=None,
@@ -19,8 +22,11 @@ def make_user(
     updated_at=None,
 ):
     user = MagicMock()
-    user.id = id or uuid.uuid4()
+    user.rut = rut
     user.email = email
+    user.password_hash = password_hash
+    user.first_name = first_name
+    user.last_name = last_name
     user.gmail_refresh_token = gmail_refresh_token
     user.gmail_token_expires_at = gmail_token_expires_at
     user.last_sync_at = last_sync_at
@@ -34,14 +40,14 @@ def make_user(
 def make_bank_account(
     *,
     id=None,
-    user_id=None,
+    user_rut="12.345.678-9",
     bank_name="Banco de Chile",
     last_4_digits="1234",
     currency="CLP",
 ):
     account = MagicMock()
     account.id = id or uuid.uuid4()
-    account.user_id = user_id or uuid.uuid4()
+    account.user_rut = user_rut
     account.bank_name = bank_name
     account.last_4_digits = last_4_digits
     account.currency = currency

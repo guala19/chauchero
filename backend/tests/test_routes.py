@@ -228,23 +228,6 @@ class TestSyncTransactions:
         assert res.status_code == 200
 
 
-# ── GET /auth/google/login ───────────────────────────────────────────────────
-
-
-class TestAuthLogin:
-    @patch("app.routers.auth.AuthService")
-    def test_returns_auth_url(self, MockAuth, client):
-        MockAuth.return_value.get_authorization_url.return_value = (
-            "https://accounts.google.com/auth",
-            "state-123",
-        )
-        res = client.get("/auth/google/login")
-        assert res.status_code == 200
-        data = res.json()
-        assert "auth_url" in data
-        assert "state" in data
-
-
 # ── GET /auth/me ─────────────────────────────────────────────────────────────
 
 
@@ -278,16 +261,17 @@ class TestAuthRefresh:
 
 class TestAuthRefreshExpired:
     def test_recently_expired_token_accepted(self, client):
-        import uuid as _uuid
         import datetime as _dt
-        fake_id = _uuid.uuid4()
+        fake_rut = "12.345.678-9"
         expired_token = "Bearer some.expired.token"
         with patch("app.routers.auth.verify_token") as mock_verify, \
-             patch("app.routers.auth.get_user_by_id") as mock_get_user:
-            mock_verify.return_value = {"sub": str(fake_id)}
+             patch("app.routers.auth.get_user_by_rut") as mock_get_user:
+            mock_verify.return_value = {"sub": fake_rut}
             mock_user = MagicMock()
-            mock_user.id = fake_id
+            mock_user.rut = fake_rut
             mock_user.email = "test@example.com"
+            mock_user.first_name = "Test"
+            mock_user.last_name = "User"
             mock_user.created_at = _dt.datetime.now(_dt.timezone.utc)
             mock_user.last_sync_at = None
             mock_get_user.return_value = mock_user

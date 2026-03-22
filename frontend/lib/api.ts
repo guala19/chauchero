@@ -55,8 +55,10 @@ export interface ApiTransaction {
 }
 
 export interface ApiUser {
-  id: string;
+  rut: string;
   email: string;
+  first_name: string;
+  last_name: string;
   last_sync_at: string | null;
   created_at: string;
 }
