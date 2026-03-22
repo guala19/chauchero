@@ -113,5 +113,6 @@ export async function fetchTransactionCount(token: string): Promise<number> {
   const totalHeader = res.headers.get("x-total-count");
   if (totalHeader) return parseInt(totalHeader, 10);
   const data = await res.json();
+  if (data && Array.isArray(data.items)) return data.items.length;
   return Array.isArray(data) ? data.length : 0;
 }
